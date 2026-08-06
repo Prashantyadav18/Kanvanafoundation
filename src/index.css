@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', sans-serif;
+    --font-serif: 'Cormorant Garamond', serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #0D2818;
+    color: #F9FBF7;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-serif-quote {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Custom Utilities & Animations */
+@keyframes shimmerGold {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.text-gold-shimmer {
+  background: linear-gradient(90deg, #F4C430 0%, #FFF5C0 50%, #F4C430 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmerGold 4s linear infinite;
+}
+
+@keyframes leafFloat {
+  0% {
+    transform: translateY(100vh) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-20vh) rotate(360deg) scale(1.1);
+    opacity: 0;
+  }
+}
+
+.animate-leaf-float {
+  animation: leafFloat linear infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0D2818;
+}
+::-webkit-scrollbar-thumb {
+  background: #1B5E34;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4CAF50;
+}
+
+/* Leaflet dark map fixes */
+.leaflet-container {
+  background: #0D2818 !important;
+  font-family: var(--font-sans) !important;
+  border-radius: 12px;
+}
+.leaflet-popup-content-wrapper {
+  background: #0D2818 !important;
+  color: #F9FBF7 !important;
+  border: 1px solid #1B5E34 !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+}
+.leaflet-popup-tip {
+  background: #0D2818 !important;
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: #86EFAC !important;
+}

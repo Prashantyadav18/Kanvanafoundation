@@ -1,0 +1,6 @@
+{
+  "name": "Kanvana Foundation",
+  "description": "Official digital platform for Kanvana Foundation - Environmental NGO rooted at Nankari, IIT Kanpur. Tree plantation drives, bird water stations, surveyor portal & volunteer hub.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
