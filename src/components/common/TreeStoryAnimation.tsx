@@ -177,7 +177,8 @@ export const TreeStoryAnimation: React.FC<TreeStoryAnimationProps> = ({
   const curr = storyData[currentStage];
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#040E07]/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 select-none text-[#F9FBF7] animate-in fade-in duration-300 overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-[#040E07]/95 backdrop-blur-2xl overflow-y-auto p-3 sm:p-6 select-none text-[#F9FBF7] animate-in fade-in duration-300">
+      <div className="min-h-full max-w-5xl mx-auto flex flex-col justify-between items-center py-2 sm:py-4 gap-6">
       
       {/* Top Header */}
       <div className="w-full max-w-5xl flex items-center justify-between border-b border-[#1B5E34]/50 pb-4">
@@ -427,5 +428,6 @@ export const TreeStoryAnimation: React.FC<TreeStoryAnimationProps> = ({
       </div>
 
     </div>
-  );
+  </div>
+);
 };

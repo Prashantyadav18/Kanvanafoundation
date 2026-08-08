@@ -1,24 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Shield, CheckCircle2, XCircle, Star, Download, Plus, 
   Trash2, MapPin, Users, TreePine, FileText, Tag, 
   BarChart2, Lock, Eye, Share2, Sparkles, AlertCircle, RefreshCw, User, Camera, Database,
-  ExternalLink, Image, ArrowLeft, RotateCcw, Phone
+  ExternalLink, Image, ArrowLeft, RotateCcw, Phone, Award, Globe
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { store, defaultStoryImages } from '../../services/store';
+import { Presentation } from 'lucide-react';
 import { Submission, Enquiry, MapMarker, Surveyor, District } from '../../types';
 import confetti from 'canvas-confetti';
 
 interface AdminDashboardProps {
   onOpenCertificate: (sub: Submission) => void;
   onSelectTree: (treeId: string) => void;
+  onOpenPitchDeck?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onOpenCertificate,
-  onSelectTree
+  onSelectTree,
+  onOpenPitchDeck
 }) => {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    return store.subscribe(() => setTick(t => t + 1));
+  }, []);
+
   // Auth state
   const [isAdminAuth, setIsAdminAuth] = useState(false);
   const [adminPass, setAdminPass] = useState('');
@@ -26,7 +34,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Admin Active Tab
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'submissions' | 'enquiries' | 'map' | 'surveyors' | 'stats' | 'qr' | 'story' | 'settings'
+    'overview' | 'submissions' | 'enquiries' | 'map' | 'surveyors' | 'stats' | 'cert' | 'qr' | 'story' | 'settings'
   >('overview');
 
   // Tree Story Images State
@@ -44,6 +52,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const mapMarkers = store.getMapMarkers();
   const surveyors = store.getSurveyors();
   const trees = store.getTrees();
+  const certificates = store.getIssuedCertificates();
 
   // Filters for Submissions
   const [subStatusFilter, setSubStatusFilter] = useState<string>('All');
@@ -63,6 +72,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [editDistricts, setEditDistricts] = useState(stats.districtsReached);
   const [editBirds, setEditBirds] = useState(stats.birdsServed);
   const [statsSavedMsg, setStatsSavedMsg] = useState(false);
+
+  // Admin Certificate Form State
+  const [certAdminName, setCertAdminName] = useState('');
+  const [certAdminTrees, setCertAdminTrees] = useState(25);
+  const [certAdminLoc, setCertAdminLoc] = useState('Nankari, IIT Kanpur');
+  const [certAdminDate, setCertAdminDate] = useState(new Date().toISOString().split('T')[0]);
 
   // New Map Marker Form
   const [newMarkerTitle, setNewMarkerTitle] = useState('');
@@ -295,6 +310,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     alert('New map marker added and published to main website map!');
   };
 
+  const handleDownloadInitialData = () => {
+    const code = store.exportInitialDataTsCode();
+    const blob = new Blob([code], { type: 'text/typescript;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'initialData.ts';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleExportEnquiriesCSV = () => {
     const headers = 'ID,Name,Email,Phone,City,Intent,Source,Status,Timestamp,Message\n';
     const rows = enquiries.map(e => 
@@ -401,12 +429,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={() => setIsAdminAuth(false)}
-          className="px-4 py-2 rounded-xl bg-[#0D2818] hover:bg-red-900/40 text-red-300 border border-red-500 text-xs font-bold uppercase transition-colors"
-        >
-          Logout Admin
-        </button>
+        <div className="flex items-center space-x-3">
+          {onOpenPitchDeck && (
+            <button
+              onClick={onOpenPitchDeck}
+              className="px-4 py-2 rounded-xl bg-[#F4C430] text-[#0D2818] font-black border border-[#FFE066] text-xs uppercase hover:bg-[#FFE066] transition-all flex items-center space-x-1.5 shadow-md cursor-pointer"
+            >
+              <Presentation className="w-4 h-4 text-[#0D2818]" />
+              <span>📊 Launch Client PPT Deck</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsAdminAuth(false)}
+            className="px-4 py-2 rounded-xl bg-[#0D2818] hover:bg-red-900/40 text-red-300 border border-red-500 text-xs font-bold uppercase transition-colors"
+          >
+            Logout Admin
+          </button>
+        </div>
       </div>
 
       {/* Admin Tabs */}
@@ -418,6 +458,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           { id: 'map', label: 'Map Markers', icon: <MapPin className="w-3.5 h-3.5" /> },
           { id: 'surveyors', label: 'Surveyors', icon: <Users className="w-3.5 h-3.5" /> },
           { id: 'stats', label: 'Homepage Stats', icon: <TreePine className="w-3.5 h-3.5" /> },
+          { id: 'cert', label: '📜 e-Certificates', icon: <Award className="w-3.5 h-3.5" /> },
           { id: 'qr', label: `Unique Tree ID Registry (${trees.length})`, icon: <Tag className="w-3.5 h-3.5" /> },
           { id: 'story', label: '✨ Tree Story Photos', icon: <Sparkles className="w-3.5 h-3.5" /> },
           { id: 'settings', label: '📁 Google Drive & Database', icon: <Lock className="w-3.5 h-3.5" /> }
@@ -1088,6 +1129,309 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </form>
       )}
 
+      {/* TAB: E-CERTIFICATES CONTROL & ISSUANCE */}
+      {activeTab === 'cert' && (
+        <div className="space-y-8 animate-fadeIn">
+          {/* Header Card */}
+          <div className="bg-[#1B5E34]/30 p-8 rounded-3xl border border-[#1B5E34] flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-[#F4C430]">
+                <Award className="w-6 h-6 text-[#F4C430]" />
+                <h3 className="font-display font-extrabold text-xl text-[#F9FBF7]">
+                  📜 Issued Certificates Registry & Control Panel
+                </h3>
+              </div>
+              <p className="text-xs text-[#86EFAC] max-w-2xl">
+                Every certificate issued (publicly or by admin) is recorded here with Reg No. Export clean data directly to CSV for Google Sheets.
+              </p>
+            </div>
+
+            <button
+              onClick={() => store.exportCertificatesCSV()}
+              className="px-5 py-3 rounded-2xl bg-[#F4C430] text-[#0D2818] font-extrabold text-xs uppercase tracking-wider hover:bg-[#86EFAC] transition-all flex items-center space-x-2 shadow-xl shrink-0 cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-[#0D2818]" />
+              <span>Export Certificates CSV (Google Sheets)</span>
+            </button>
+          </div>
+
+          {/* Stats Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-[#1B5E34]/30 p-5 rounded-2xl border border-[#1B5E34] text-center">
+              <span className="text-2xl font-black text-[#F4C430] block">{certificates.length}</span>
+              <span className="text-xs font-bold text-[#86EFAC] uppercase">Total Certificates Issued</span>
+            </div>
+            <div className="bg-[#1B5E34]/30 p-5 rounded-2xl border border-[#1B5E34] text-center">
+              <span className="text-2xl font-black text-[#86EFAC] block">
+                {certificates.reduce((acc, c) => acc + (c.treesPlanted || 0), 0)}
+              </span>
+              <span className="text-xs font-bold text-[#86EFAC] uppercase">Trees Recognized on Certificates</span>
+            </div>
+            <div className="bg-[#1B5E34]/30 p-5 rounded-2xl border border-[#1B5E34] text-center">
+              <span className="text-2xl font-black text-emerald-300 block">100% Verified</span>
+              <span className="text-xs font-bold text-[#86EFAC] uppercase">Reg No. & QR Code Tracking</span>
+            </div>
+          </div>
+
+          {/* Issue Custom Certificate Form */}
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!certAdminName.trim()) {
+                alert('Please enter Volunteer or Sponsor Full Name.');
+                return;
+              }
+              const issued = store.issueCertificate({
+                recipientName: certAdminName.trim(),
+                treesPlanted: certAdminTrees || 25,
+                location: certAdminLoc,
+                issuedDate: certAdminDate,
+                issuedBy: 'Admin'
+              });
+
+              onOpenCertificate({
+                id: issued.id,
+                surveyorId: 'admin',
+                surveyorName: 'Prashant Yadav',
+                volunteerName: certAdminName.trim(),
+                volunteerPhone: '',
+                volunteerVillage: certAdminLoc,
+                district: 'Kanpur Nagar',
+                activityType: 'Tree Plantation',
+                treesCount: certAdminTrees || 25,
+                activityDate: certAdminDate,
+                locationName: certAdminLoc,
+                gps: { lat: 26.5188, lng: 80.2329 },
+                notes: `Certificate No: ${issued.certificateNo}`,
+                photoUrls: [],
+                photoCaptions: [],
+                consentGiven: true,
+                status: 'approved',
+                featured: true,
+                createdAt: new Date().toISOString()
+              });
+              confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+            }} 
+            className="bg-[#1B5E34]/30 p-6 sm:p-8 rounded-3xl border border-[#1B5E34] space-y-4"
+          >
+            <h4 className="font-display font-bold text-base text-[#F9FBF7] flex items-center space-x-2">
+              <Plus className="w-4 h-4 text-[#F4C430]" />
+              <span>Issue New Custom e-Certificate</span>
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-1">
+                  Volunteer / Recipient Full Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={certAdminName}
+                  onChange={(e) => setCertAdminName(e.target.value)}
+                  placeholder="e.g. Vaibhav Yadav"
+                  className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-2.5 text-xs text-[#F9FBF7] focus:outline-none focus:border-[#4CAF50]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-1">
+                  Trees Planted / Contribution
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={certAdminTrees}
+                  onChange={(e) => setCertAdminTrees(Number(e.target.value))}
+                  className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-2.5 text-xs text-[#F9FBF7] focus:outline-none focus:border-[#4CAF50]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-1">
+                  Location / Institution Name
+                </label>
+                <input
+                  type="text"
+                  value={certAdminLoc}
+                  onChange={(e) => setCertAdminLoc(e.target.value)}
+                  placeholder="e.g. Nankari, IIT Kanpur"
+                  className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-2.5 text-xs text-[#F9FBF7] focus:outline-none focus:border-[#4CAF50]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-1">
+                  Issue Date
+                </label>
+                <input
+                  type="date"
+                  value={certAdminDate}
+                  onChange={(e) => setCertAdminDate(e.target.value)}
+                  className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-2.5 text-xs text-[#F9FBF7] focus:outline-none focus:border-[#4CAF50]"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-2xl bg-[#F4C430] text-[#0D2818] font-black text-xs uppercase tracking-wider hover:bg-[#86EFAC] transition-all flex items-center justify-center space-x-2 shadow-lg cursor-pointer"
+            >
+              <Award className="w-4 h-4 text-[#0D2818]" />
+              <span>Issue, Log in Database & View Certificate</span>
+            </button>
+          </form>
+
+          {/* ISSUED CERTIFICATES DATABASE TABLE */}
+          <div className="bg-[#1B5E34]/30 rounded-3xl border border-[#1B5E34] overflow-hidden space-y-4 p-6">
+            <div className="flex items-center justify-between">
+              <h4 className="font-display font-bold text-base text-[#F9FBF7] flex items-center space-x-2">
+                <Database className="w-4 h-4 text-[#F4C430]" />
+                <span>Issued Certificates Registry ({certificates.length})</span>
+              </h4>
+
+              <button
+                onClick={() => store.exportCertificatesCSV()}
+                className="text-xs text-[#F4C430] hover:underline font-bold flex items-center space-x-1"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV for Google Sheets</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-[#F9FBF7]">
+                <thead className="bg-[#0D2818] text-[#86EFAC] font-bold uppercase text-[10px] tracking-wider border-b border-[#1B5E34]">
+                  <tr>
+                    <th className="py-3 px-4">Certificate No</th>
+                    <th className="py-3 px-4">Recipient Name</th>
+                    <th className="py-3 px-4">Trees</th>
+                    <th className="py-3 px-4">Location</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Issued By</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1B5E34]/50">
+                  {certificates.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400 italic">
+                        No certificates issued yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    certificates.map((cert) => (
+                      <tr key={cert.id} className="hover:bg-[#1B5E34]/20 transition-all">
+                        <td className="py-3 px-4 font-mono font-bold text-[#F4C430]">
+                          {cert.certificateNo}
+                        </td>
+                        <td className="py-3 px-4 font-bold text-white">
+                          {cert.recipientName}
+                        </td>
+                        <td className="py-3 px-4 text-[#86EFAC] font-bold">
+                          🌳 {cert.treesPlanted}
+                        </td>
+                        <td className="py-3 px-4 text-slate-300">
+                          📍 {cert.location}
+                        </td>
+                        <td className="py-3 px-4 text-slate-400">
+                          {cert.issuedDate}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${
+                            cert.issuedBy === 'Admin' ? 'bg-amber-950/80 text-amber-300 border border-amber-700' : 'bg-emerald-950/80 text-emerald-300 border border-emerald-700'
+                          }`}>
+                            {cert.issuedBy}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right space-x-2">
+                          <button
+                            onClick={() => onOpenCertificate({
+                              id: cert.id,
+                              surveyorId: 'admin',
+                              surveyorName: 'Prashant Yadav',
+                              volunteerName: cert.recipientName,
+                              volunteerPhone: '',
+                              volunteerVillage: cert.location,
+                              district: 'Kanpur Nagar',
+                              activityType: 'Tree Plantation',
+                              treesCount: cert.treesPlanted,
+                              activityDate: cert.issuedDate,
+                              locationName: cert.location,
+                              gps: { lat: 26.5188, lng: 80.2329 },
+                              notes: cert.certificateNo,
+                              photoUrls: [],
+                              photoCaptions: [],
+                              consentGiven: true,
+                              status: 'approved',
+                              featured: true,
+                              createdAt: cert.createdAt
+                            })}
+                            className="px-2.5 py-1 rounded-lg bg-[#F4C430] text-[#0D2818] font-bold text-[10px] hover:bg-[#86EFAC] transition-all cursor-pointer"
+                          >
+                            View / Print
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete certificate record for ${cert.recipientName}?`)) {
+                                store.deleteIssuedCertificate(cert.id);
+                              }
+                            }}
+                            className="px-2 py-1 rounded-lg bg-red-950/80 text-red-300 border border-red-800 hover:bg-red-800 hover:text-white transition-all text-[10px] cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Rapid Certificate Generation for Existing Approved Submissions */}
+          <div className="space-y-4">
+            <h4 className="font-display font-bold text-base text-[#F9FBF7]">
+              Issue Certificate for Field Submissions ({submissions.filter(s => s.status === 'approved').length})
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {submissions.filter(s => s.status === 'approved').slice(0, 10).map((sub) => (
+                <div key={sub.id} className="bg-[#1B5E34]/30 p-4 rounded-2xl border border-[#1B5E34] flex items-center justify-between">
+                  <div>
+                    <span className="font-display font-bold text-sm text-[#F9FBF7] block">
+                      {sub.volunteerName}
+                    </span>
+                    <span className="text-xs text-[#86EFAC]">
+                      🌳 {sub.treesCount} Trees • 📍 {sub.locationName || sub.volunteerVillage}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      store.issueCertificate({
+                        recipientName: sub.volunteerName,
+                        treesPlanted: sub.treesCount,
+                        location: sub.locationName || sub.volunteerVillage,
+                        issuedDate: sub.activityDate || new Date().toISOString().split('T')[0],
+                        issuedBy: 'Admin'
+                      });
+                      onOpenCertificate(sub);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#F4C430] text-[#0D2818] font-extrabold text-xs uppercase hover:bg-[#86EFAC] transition-all flex items-center space-x-1 cursor-pointer"
+                  >
+                    <Award className="w-3.5 h-3.5 text-[#0D2818]" />
+                    <span>Issue Certificate</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* TAB 7: UNIQUE TREE ID REGISTRY */}
       {activeTab === 'qr' && (
         <div className="space-y-8 animate-fadeIn">
@@ -1267,6 +1611,64 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* TAB 8: GOOGLE DRIVE & FREE BACKEND SETTINGS */}
       {activeTab === 'settings' && (
         <div className="space-y-8 animate-fadeIn">
+          {/* GitHub / Vercel Data Sync Section */}
+          <div className="bg-[#1B5E34]/30 p-8 rounded-3xl border-2 border-[#F4C430]/40 space-y-6 shadow-xl">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-[#F4C430] rounded-2xl text-[#0D2818] shadow-md">
+                <Database className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-xl text-[#F9FBF7]">
+                  🌐 Vercel / GitHub Live Data Sync Tool
+                </h3>
+                <p className="text-xs text-[#86EFAC]">
+                  Fix for "Dummy Images on Vercel" — Make all your admin edits & uploaded photos visible to EVERY visitor globally!
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-[#0D2818] p-5 rounded-2xl border border-[#1B5E34] space-y-3 text-xs leading-relaxed text-[#F9FBF7]/90">
+              <p className="font-bold text-[#F4C430] text-sm">
+                ❓ Kyun dusri devices par Vercel link kholne par dummy images dikhti hain?
+              </p>
+              <p className="text-[#86EFAC]">
+                Admin panel me aap jo bhi photos upload karte ho ya badlav karte ho, wo aapke browser ke <code className="bg-black/50 px-1.5 py-0.5 rounded text-white font-mono">localStorage</code> me save hota hai. Vercel par jab koi aur apani device se website kholta hai, to uska localStorage khali hota hai aur website <code className="bg-black/50 px-1.5 py-0.5 rounded text-white font-mono">src/data/initialData.ts</code> file ke default code data ko dikhati hai.
+              </p>
+              <p className="font-bold text-[#4CAF50] pt-1 text-sm">
+                ✅ Isko Hamesha Ke Liye Kaise Fix Karein (1 Minute Step):
+              </p>
+              <ol className="list-decimal list-inside space-y-2 text-[#86EFAC]/90 pl-1">
+                <li>Niche <strong>"Download Updated initialData.ts"</strong> button par click karo.</li>
+                <li>Download hui <code className="bg-black/50 px-1.5 py-0.5 rounded text-white font-mono">initialData.ts</code> file ko apne project ke <code className="bg-black/50 px-1.5 py-0.5 rounded text-white font-mono">src/data/initialData.ts</code> path par replace/paste kar do.</li>
+                <li>Github par push kar do (ya Vercel par nayi zip upload kar do).</li>
+                <li>Ab poori duniya me kisi bhi device/browser par aapki saari real photos aur admin updates instantly live dikhenge!</li>
+              </ol>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={handleDownloadInitialData}
+                className="px-6 py-3.5 rounded-2xl bg-[#F4C430] text-[#0D2818] font-extrabold text-xs uppercase tracking-wider hover:bg-[#FFE066] transition-all shadow-xl flex items-center space-x-2 cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-[#0D2818]" />
+                <span>📥 Download Updated initialData.ts File for GitHub</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(store.exportInitialDataTsCode());
+                  alert("✅ initialData.ts code copied to clipboard! Paste this into src/data/initialData.ts in your repo.");
+                }}
+                className="px-5 py-3.5 rounded-2xl bg-[#0D2818] text-[#86EFAC] border border-[#1B5E34] font-bold text-xs uppercase hover:bg-[#1B5E34] transition-all flex items-center space-x-2 cursor-pointer"
+              >
+                <FileText className="w-4 h-4 text-[#86EFAC]" />
+                <span>📋 Copy initialData.ts Code</span>
+              </button>
+            </div>
+          </div>
+
           {/* Founder Profile Photo Card */}
           <div className="bg-[#1B5E34]/30 p-8 rounded-3xl border border-[#1B5E34] space-y-6">
             <div className="flex items-center space-x-3">
@@ -1433,7 +1835,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(`function doGet(e) {
-  return ContentService.createTextOutput("✅ Kanvana Google Drive Sync Service is Active! Send POST requests from Admin Dashboard.").setMimeType(ContentService.MimeType.TEXT);
+  return ContentService.createTextOutput("✅ Kanvana Google Drive Sync Service Active!").setMimeType(ContentService.MimeType.TEXT);
 }
 
 function doPost(e) {
@@ -1444,116 +1846,54 @@ function doPost(e) {
     var recordType = data.type || "submission";
     var timestamp = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
 
-    // 1. Get or Create "Kanvana Tree Photos" Folder in Google Drive
-    var folderName = "Kanvana Tree Photos";
-    var folders = DriveApp.getFoldersByName(folderName);
-    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
-    
-    // 2. Upload Base64 Photos to Google Drive & generate viewable links
+    var folder = DriveApp.getFoldersByName("Kanvana Tree Photos").hasNext() ? DriveApp.getFoldersByName("Kanvana Tree Photos").next() : DriveApp.createFolder("Kanvana Tree Photos");
     var drivePhotoLinks = [];
     var photos = payload.photoUrls || [];
     if (payload.photoUrl) photos.push(payload.photoUrl);
-    
     for (var i = 0; i < photos.length; i++) {
       var photo = photos[i];
       if (photo && photo.indexOf("data:image") === 0) {
         var parts = photo.split(",");
         var mimeType = parts[0].match(/:(.*?);/)[1];
         var decoded = Utilities.base64Decode(parts[1]);
-        var blob = Utilities.newBlob(decoded, mimeType, "Kanvana_Tree_Photo_" + Date.now() + "_" + (i+1) + ".jpg");
+        var blob = Utilities.newBlob(decoded, mimeType, "Kanvana_Photo_" + Date.now() + "_" + (i+1) + ".jpg");
         var file = folder.createFile(blob);
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         drivePhotoLinks.push(file.getUrl());
-      } else if (photo) {
-        drivePhotoLinks.push(photo);
-      }
+      } else if (photo) drivePhotoLinks.push(photo);
     }
 
-    // 3. AUTO-CREATE ALL 3 TABS UPFRONT IF THEY DO NOT EXIST YET
-    
-    // Tab 1: "📊 Kanvana Overview"
-    var overviewSheet = ss.getSheetByName("📊 Kanvana Overview");
-    if (!overviewSheet) {
-      overviewSheet = ss.insertSheet("📊 Kanvana Overview", 0);
-      overviewSheet.getRange("A1:D1").merge().setValue("KANVANA FOUNDATION - FIELD DATA DASHBOARD").setFontWeight("bold").setFontSize(13).setBackground("#1B5E34").setFontColor("#FFFFFF").setHorizontalAlignment("center");
-      
-      overviewSheet.getRange("A3").setValue("Total Trees Planted").setFontWeight("bold");
-      overviewSheet.getRange("B3").setFormula("=SUM('🌳 Tree Plantations'!G2:G1000)").setFontWeight("bold").setFontSize(12).setFontColor("#1B5E34");
+    var treeSheet = ss.getSheetByName("🌳 Tree Plantations") || ss.insertSheet("🌳 Tree Plantations", 0);
+    if (treeSheet.getLastRow() === 0) {
+      treeSheet.appendRow(["Timestamp", "Volunteer Name", "Phone", "Location", "District", "Surveyor", "Trees", "Species", "Notes", "Photos"]);
+      treeSheet.getRange("1:1").setFontWeight("bold").setBackground("#1B5E34").setFontColor("#FFF");
+    }
 
-      overviewSheet.getRange("A4").setValue("Total Field Records").setFontWeight("bold");
-      overviewSheet.getRange("B4").setFormula("=COUNTA('🌳 Tree Plantations'!A2:A1000)").setFontWeight("bold").setFontSize(12).setFontColor("#1B5E34");
+    var certSheet = ss.getSheetByName("📜 Issued Certificates") || ss.insertSheet("📜 Issued Certificates", 1);
+    if (certSheet.getLastRow() === 0) {
+      certSheet.appendRow(["Timestamp", "Certificate No", "Recipient Name", "Trees Recognized", "Location", "Issued Date", "Issued By"]);
+      certSheet.getRange("1:1").setFontWeight("bold").setBackground("#1B5E34").setFontColor("#FFF");
+    }
 
-      overviewSheet.getRange("A5").setValue("Registered Surveyors").setFontWeight("bold");
-      overviewSheet.getRange("B5").setFormula("=COUNTA('👷 Surveyors'!A2:A1000)").setFontWeight("bold").setFontSize(12).setFontColor("#1B5E34");
+    var surveyorSheet = ss.getSheetByName("👷 Surveyors") || ss.insertSheet("👷 Surveyors", 2);
+    if (surveyorSheet.getLastRow() === 0) {
+      surveyorSheet.appendRow(["Timestamp", "Surveyor Name", "Role", "Phone", "District", "Photos"]);
+      surveyorSheet.getRange("1:1").setFontWeight("bold").setBackground("#1B5E34").setFontColor("#FFF");
+    }
 
-      overviewSheet.getRange("A6").setValue("Last Sync Timestamp").setFontWeight("bold");
-      overviewSheet.getRange("B6").setValue(timestamp).setFontColor("#666666");
-      
-      overviewSheet.autoResizeColumns(1, 4);
+    var photoStr = drivePhotoLinks.length > 0 ? drivePhotoLinks.join(" , ") : "No Photos";
+
+    if (recordType === "certificate") {
+      certSheet.appendRow([timestamp, payload.certificateNo || "KNV-CERT-2026", payload.recipientName || "Volunteer", Number(payload.treesPlanted || 1), payload.location || "Nankari", payload.issuedDate || timestamp.split(" ")[0], payload.issuedBy || "Public Portal"]);
+    } else if (recordType === "surveyor") {
+      surveyorSheet.appendRow([timestamp, payload.name || payload.surveyorName || "Surveyor", payload.role || "Surveyor", "'" + (payload.phone || "N/A"), payload.district || "Kanpur", photoStr]);
     } else {
-      overviewSheet.getRange("B6").setValue(timestamp);
+      treeSheet.appendRow([timestamp, payload.volunteerName || payload.name || "Volunteer", "'" + (payload.volunteerPhone || payload.phone || "N/A"), payload.locationName || payload.volunteerVillage || "Kanpur", payload.district || "Kanpur", payload.surveyorName || "Online", Number(payload.treesCount || payload.treesPlanted || 1), payload.treeSpecies || payload.activityType || "Tree Plantation", payload.notes || "Record", photoStr]);
     }
-
-    // Tab 2: "🌳 Tree Plantations"
-    var treeSheet = ss.getSheetByName("🌳 Tree Plantations");
-    if (!treeSheet) {
-      treeSheet = ss.insertSheet("🌳 Tree Plantations", 1);
-      treeSheet.appendRow(["Timestamp", "Volunteer Name", "Phone", "Village / Location", "District", "Surveyor Name", "Trees Count", "Species / Activity", "Notes", "Google Drive Photos"]);
-      treeSheet.getRange("1:1").setFontWeight("bold").setBackground("#1B5E34").setFontColor("#FFFFFF").setHorizontalAlignment("center");
-      treeSheet.setFrozenRows(1);
-    }
-
-    // Tab 3: "👷 Surveyors"
-    var surveyorSheet = ss.getSheetByName("👷 Surveyors");
-    if (!surveyorSheet) {
-      surveyorSheet = ss.insertSheet("👷 Surveyors", 2);
-      surveyorSheet.appendRow(["Timestamp", "Surveyor Name", "Role / Code", "Phone", "District / Region", "Google Drive Photo"]);
-      surveyorSheet.getRange("1:1").setFontWeight("bold").setBackground("#1B5E34").setFontColor("#FFFFFF").setHorizontalAlignment("center");
-      surveyorSheet.setFrozenRows(1);
-    }
-
-    // Optional: Delete default blank "Sheet1" if user hasn't deleted it
-    var defaultSheet = ss.getSheetByName("Sheet1");
-    if (defaultSheet && ss.getSheets().length > 1) {
-      try { ss.deleteSheet(defaultSheet); } catch(e) {}
-    }
-
-    // 4. ROUTE DATA TO SPECIFIC TAB
-    var photoString = drivePhotoLinks.length > 0 ? drivePhotoLinks.join(" , ") : "No Photos";
-
-    if (recordType === "surveyor") {
-      surveyorSheet.appendRow([
-        timestamp,
-        payload.name || payload.surveyorName || "Field Surveyor",
-        payload.role || payload.code || "Surveyor",
-        "'" + (payload.phone || "N/A"),
-        payload.district || "Kanpur Nagar",
-        photoString
-      ]);
-      surveyorSheet.autoResizeColumns(1, 6);
-
-    } else {
-      treeSheet.appendRow([
-        timestamp,
-        payload.volunteerName || payload.name || "Volunteer / Supporter",
-        "'" + (payload.volunteerPhone || payload.phone || "N/A"),
-        payload.locationName || payload.volunteerVillage || "Kanpur",
-        payload.district || "Kanpur Nagar",
-        payload.surveyorName || "Admin / Online",
-        Number(payload.treesCount || payload.treesPlanted || 1),
-        payload.treeSpecies || payload.activityType || "Tree Plantation",
-        payload.notes || "Field Record",
-        photoString
-      ]);
-      treeSheet.autoResizeColumns(1, 10);
-    }
-    
     return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
-  } catch (err) {
-    return ContentService.createTextOutput("Error: " + err.toString()).setMimeType(ContentService.MimeType.TEXT);
-  }
+  } catch(err) { return ContentService.createTextOutput("Error: " + err.toString()).setMimeType(ContentService.MimeType.TEXT); }
 }`);
-                      alert("Enhanced Google Drive & Multi-Tab Sheet Script Code copied to clipboard!");
+                      alert("Multi-Tab Google Sheets & Drive Script Code copied to clipboard!");
                     }}
                     className="px-3 py-1 bg-[#1B5E34] text-[#86EFAC] hover:bg-[#4CAF50] hover:text-[#0D2818] rounded-lg text-[11px] font-bold transition-all"
                   >
@@ -1830,8 +2170,9 @@ function doPost(e) {
 
       {/* FULL FIELD SUBMISSION DETAIL & HIGH-RES IMAGE INSPECTION MODAL */}
       {selectedSubForDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn overflow-y-auto">
-          <div className="bg-[#0D2818] border-2 border-[#1B5E34] rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 md:p-8 space-y-6 shadow-2xl relative my-auto">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md overflow-y-auto p-3 sm:p-6 animate-fadeIn">
+          <div className="min-h-full w-full flex items-center justify-center py-4 sm:py-8">
+            <div className="bg-[#0A3319] border-2 border-[#15803D] rounded-2xl sm:rounded-3xl max-w-4xl w-full p-5 sm:p-8 space-y-6 shadow-2xl relative my-auto text-white">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-[#1B5E34] pb-4">
               <div>
@@ -2008,6 +2349,7 @@ function doPost(e) {
             </div>
           </div>
         </div>
+      </div>
       )}
 
     </div>

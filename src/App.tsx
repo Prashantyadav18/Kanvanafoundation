@@ -9,6 +9,7 @@ import { MissionPillars } from './components/public/MissionPillars';
 import { ProcessFlow } from './components/public/ProcessFlow';
 import { VolunteerGallery } from './components/public/VolunteerGallery';
 import { ImpactMap } from './components/public/ImpactMap';
+import { CertificateGeneratorSection } from './components/public/CertificateGeneratorSection';
 import { TreeQRSection } from './components/public/TreeQRSection';
 import { EnquiryForm } from './components/public/EnquiryForm';
 import { FundATree } from './components/public/FundATree';
@@ -18,7 +19,7 @@ import { CertificateModal } from './components/common/CertificateModal';
 import { SurveyorPortal } from './components/surveyor/SurveyorPortal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { TreeProfileView } from './components/tree/TreeProfileView';
-import { TreeStoryAnimation } from './components/common/TreeStoryAnimation';
+import { ClientPitchDeck } from './components/common/ClientPitchDeck';
 import { store } from './services/store';
 import { Language, Submission } from './types';
 
@@ -33,6 +34,9 @@ export default function App() {
 
   // Active Portal State: 'public' | 'surveyor' | 'admin' | 'tree'
   const [currentPortal, setCurrentPortal] = useState<'public' | 'surveyor' | 'admin' | 'tree'>('public');
+
+  // Client Pitch Deck PPT State
+  const [showPitchDeck, setShowPitchDeck] = useState(false);
 
   // Handle Hash-based URL Routing for direct Surveyor & Admin access (e.g. site.com/#surveyor)
   useEffect(() => {
@@ -81,9 +85,6 @@ export default function App() {
     location: 'Nankari, IIT Kanpur',
     date: new Date().toISOString().split('T')[0]
   });
-
-  // Tree Story Animation State (auto opens on site load)
-  const [showTreeStory, setShowTreeStory] = useState(true);
 
   const handleToggleLanguage = (lang: Language) => {
     setLanguage(lang);
@@ -135,6 +136,7 @@ export default function App() {
         language={language}
         onToggleLanguage={handleToggleLanguage}
         onOpenJoinModal={() => handleScrollToSection('#enquiry')}
+        onOpenPitchDeck={() => setShowPitchDeck(true)}
       />
 
       {/* PORTAL VIEW SWITCHING */}
@@ -146,7 +148,7 @@ export default function App() {
             onPlantClick={() => handleScrollToSection('#enquiry')}
             onImpactClick={() => handleScrollToSection('#stats')}
             onOpenJoinModal={() => handleScrollToSection('#enquiry')}
-            onOpenStory={() => setShowTreeStory(true)}
+            onOpenPitchDeck={() => setShowPitchDeck(true)}
           />
 
           {/* SECTION 4: IMPACT STATS */}
@@ -176,6 +178,15 @@ export default function App() {
             submissions={store.getSubmissions()}
             language={language}
             onOpenCertificate={handleOpenCertificateForSub}
+          />
+
+          {/* SECTION 8.5: E-CERTIFICATE GENERATOR */}
+          <CertificateGeneratorSection
+            language={language}
+            onOpenCertificateModal={({ name, trees, location, date }) => {
+              setCertData({ name, trees, location, date });
+              setCertModalOpen(true);
+            }}
           />
 
           {/* SECTION 9: INTERACTIVE IMPACT MAP */}
@@ -222,6 +233,7 @@ export default function App() {
           <AdminDashboard
             onOpenCertificate={handleOpenCertificateForSub}
             onSelectTree={handleSelectTree}
+            onOpenPitchDeck={() => setShowPitchDeck(true)}
           />
         </main>
       )}
@@ -245,14 +257,12 @@ export default function App() {
         initialDate={certData.date}
       />
 
-      {/* TREE STORY PREMIUM INTRO ANIMATION */}
-      {showTreeStory && (
-        <TreeStoryAnimation
-          language={language}
-          onClose={() => setShowTreeStory(false)}
-          onStartPlanting={() => handleScrollToSection('#enquiry')}
-        />
-      )}
+      {/* CLIENT / SPONSOR PRESENTATION PITCH DECK (PPT) */}
+      <ClientPitchDeck
+        isOpen={showPitchDeck}
+        onClose={() => setShowPitchDeck(false)}
+        onStartPlanting={() => handleScrollToSection('#enquiry')}
+      />
 
     </div>
   );

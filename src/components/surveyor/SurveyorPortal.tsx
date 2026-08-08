@@ -34,6 +34,9 @@ export const SurveyorPortal: React.FC = () => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [notes, setNotes] = useState('');
   const [treeSpecies, setTreeSpecies] = useState('Neem & Peepal');
+  const [customTreeId, setCustomTreeId] = useState('');
+
+  const isCustomTreeIdDuplicate = customTreeId.trim() ? !store.isTreeIdUnique(customTreeId) : false;
 
   // Photos
   const [photoUrls, setPhotoUrls] = useState<string[]>([
@@ -153,6 +156,11 @@ export const SurveyorPortal: React.FC = () => {
       return;
     }
 
+    if (isCustomTreeIdDuplicate) {
+      alert(`⚠️ Tree ID "${customTreeId}" already exists in the database! Duplicate Tree IDs are strictly blocked. Please enter a unique Tree ID.`);
+      return;
+    }
+
     setSubmitting(true);
 
     setTimeout(() => {
@@ -172,7 +180,8 @@ export const SurveyorPortal: React.FC = () => {
         photoUrls: photoUrls.length > 0 ? photoUrls : ['https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800'],
         photoCaptions: ['Field submission photo'],
         consentGiven,
-        treeSpecies
+        treeSpecies,
+        treeId: customTreeId.trim() ? customTreeId.trim().toUpperCase() : undefined
       });
 
       setSubmitting(false);
@@ -189,6 +198,7 @@ export const SurveyorPortal: React.FC = () => {
     setVolunteerName('');
     setVolunteerPhone('');
     setVolunteerVillage('');
+    setCustomTreeId('');
     setNotes('');
     setStep(1);
     setSuccessMsg(false);
@@ -592,6 +602,34 @@ export const SurveyorPortal: React.FC = () => {
                       />
                     </div>
                   </div>
+
+                  {activityType === 'Tree Plantation' && (
+                    <div>
+                      <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-1">
+                        Unique Tree ID (e.g. 0018 or KANVANA-TREE-0018)
+                      </label>
+                      <input
+                        type="text"
+                        value={customTreeId}
+                        onChange={(e) => setCustomTreeId(e.target.value)}
+                        placeholder="e.g. 0018 or KANVANA-TREE-0018 (Optional)"
+                        className={`w-full bg-[#0D2818] border rounded-2xl px-4 py-2.5 text-xs text-[#F9FBF7] focus:outline-none ${
+                          isCustomTreeIdDuplicate
+                            ? 'border-red-500 bg-red-950/40 focus:border-red-400'
+                            : 'border-[#1B5E34] focus:border-[#4CAF50]'
+                        }`}
+                      />
+                      {isCustomTreeIdDuplicate ? (
+                        <p className="text-xs text-red-400 font-bold mt-1">
+                          ❌ Error: Tree ID "{customTreeId}" is ALREADY registered in database! Duplicate Tree IDs are strictly blocked.
+                        </p>
+                      ) : customTreeId.trim() ? (
+                        <p className="text-[11px] text-[#86EFAC] mt-1 font-semibold">
+                          ✅ Tree ID "{customTreeId.toUpperCase()}" is available!
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
 
                   <div>
                     <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-1">

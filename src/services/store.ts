@@ -1,23 +1,48 @@
 import { 
-  SiteStats, Submission, MapMarker, Enquiry, Surveyor, TreeProfile, Language 
+  SiteStats, Submission, MapMarker, Enquiry, Surveyor, TreeProfile, Language, IssuedCertificate 
 } from '../types';
 import { 
   initialSiteStats, initialSubmissions, initialMapMarkers, 
   initialEnquiries, initialSurveyors, initialTrees 
 } from '../data/initialData';
+import { db, collection, doc, setDoc, deleteDoc, onSnapshot } from '../lib/firebase';
 
 const STORAGE_KEYS = {
-  STATS: 'kanvana_site_stats_v2',
-  SUBMISSIONS: 'kanvana_submissions_v2',
-  MARKERS: 'kanvana_map_markers_v2',
-  ENQUIRIES: 'kanvana_enquiries_v2',
-  SURVEYORS: 'kanvana_surveyors_v2',
-  TREES: 'kanvana_trees_v2',
+  STATS: 'kanvana_site_stats_v4',
+  SUBMISSIONS: 'kanvana_submissions_v4',
+  MARKERS: 'kanvana_map_markers_v4',
+  ENQUIRIES: 'kanvana_enquiries_v4',
+  SURVEYORS: 'kanvana_surveyors_v4',
+  TREES: 'kanvana_trees_v4',
+  CERTIFICATES: 'kanvana_certificates_v1',
   LANG: 'kanvana_language_v1',
   WEBHOOK: 'kanvana_google_webhook_v1',
   FOUNDER_PHOTO: 'kanvana_founder_photo_v1',
   STORY_IMAGES: 'kanvana_story_images_v1'
 };
+
+const initialCertificates: IssuedCertificate[] = [
+  {
+    id: 'cert-101',
+    certificateNo: 'KNV-CERT-2026-001',
+    recipientName: 'Vaibhav Yadav',
+    treesPlanted: 10,
+    location: 'Nankari, IIT Kanpur',
+    issuedDate: '2026-08-01',
+    issuedBy: 'Public Portal',
+    createdAt: '2026-08-01T10:00:00Z'
+  },
+  {
+    id: 'cert-102',
+    certificateNo: 'KNV-CERT-2026-002',
+    recipientName: 'Prashant Yadav',
+    treesPlanted: 25,
+    location: 'Bhitargaon, Kanpur Dehat',
+    issuedDate: '2026-08-05',
+    issuedBy: 'Admin',
+    createdAt: '2026-08-05T12:30:00Z'
+  }
+];
 
 function loadStorage<T>(key: string, fallback: T): T {
   try {
@@ -55,6 +80,7 @@ class KanvanaStore {
   private enquiries: Enquiry[] = loadStorage(STORAGE_KEYS.ENQUIRIES, initialEnquiries);
   private surveyors: Surveyor[] = loadStorage(STORAGE_KEYS.SURVEYORS, initialSurveyors);
   private trees: TreeProfile[] = loadStorage(STORAGE_KEYS.TREES, initialTrees);
+  private certificates: IssuedCertificate[] = loadStorage(STORAGE_KEYS.CERTIFICATES, initialCertificates);
   private language: Language = loadStorage(STORAGE_KEYS.LANG, 'en');
   private storyImages: string[] = loadStorage(STORAGE_KEYS.STORY_IMAGES, defaultStoryImages);
   private webhookUrl: string = loadStorage(STORAGE_KEYS.WEBHOOK, '');
@@ -64,6 +90,126 @@ class KanvanaStore {
   );
 
   private listeners: Set<Listener> = new Set();
+
+  constructor() {
+    this.initFirestoreSync();
+  }
+
+  private async syncDoc(collectionName: string, docId: string, data: any) {
+    try {
+      if (!docId) return;
+      await setDoc(doc(db, collectionName, docId), data, { merge: true });
+    } catch (e) {
+      console.warn(`[Firestore Sync] Failed to sync ${collectionName}/${docId}:`, e);
+    }
+  }
+
+  private async removeDoc(collectionName: string, docId: string) {
+    try {
+      if (!docId) return;
+      await deleteDoc(doc(db, collectionName, docId));
+    } catch (e) {
+      console.warn(`[Firestore Sync] Failed to delete ${collectionName}/${docId}:`, e);
+    }
+  }
+
+  private initFirestoreSync() {
+    try {
+      // Submissions Live Listener
+      onSnapshot(collection(db, 'submissions'), (snapshot) => {
+        if (!snapshot.empty) {
+          const list: Submission[] = [];
+          snapshot.forEach(d => list.push(d.data() as Submission));
+          list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+          this.submissions = list;
+          saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
+          this.notify();
+        } else {
+          this.submissions.forEach(s => this.syncDoc('submissions', s.id, s));
+        }
+      }, err => console.warn('[Firestore] Submissions listener error:', err));
+
+      // Surveyors Live Listener
+      onSnapshot(collection(db, 'surveyors'), (snapshot) => {
+        if (!snapshot.empty) {
+          const list: Surveyor[] = [];
+          snapshot.forEach(d => list.push(d.data() as Surveyor));
+          this.surveyors = list;
+          saveStorage(STORAGE_KEYS.SURVEYORS, this.surveyors);
+          this.notify();
+        } else {
+          this.surveyors.forEach(s => this.syncDoc('surveyors', s.id, s));
+        }
+      }, err => console.warn('[Firestore] Surveyors listener error:', err));
+
+      // Certificates Live Listener
+      onSnapshot(collection(db, 'certificates'), (snapshot) => {
+        if (!snapshot.empty) {
+          const list: IssuedCertificate[] = [];
+          snapshot.forEach(d => list.push(d.data() as IssuedCertificate));
+          list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+          this.certificates = list;
+          saveStorage(STORAGE_KEYS.CERTIFICATES, this.certificates);
+          this.notify();
+        } else {
+          this.certificates.forEach(c => this.syncDoc('certificates', c.id, c));
+        }
+      }, err => console.warn('[Firestore] Certificates listener error:', err));
+
+      // Impact Stats Live Listener
+      onSnapshot(doc(db, 'impact_stats', 'global'), (docSnap) => {
+        if (docSnap.exists()) {
+          this.stats = { ...this.stats, ...(docSnap.data() as SiteStats) };
+          saveStorage(STORAGE_KEYS.STATS, this.stats);
+          this.notify();
+        } else {
+          this.syncDoc('impact_stats', 'global', this.stats);
+        }
+      }, err => console.warn('[Firestore] Stats listener error:', err));
+
+      // Enquiries Live Listener
+      onSnapshot(collection(db, 'enquiries'), (snapshot) => {
+        if (!snapshot.empty) {
+          const list: Enquiry[] = [];
+          snapshot.forEach(d => list.push(d.data() as Enquiry));
+          this.enquiries = list;
+          saveStorage(STORAGE_KEYS.ENQUIRIES, this.enquiries);
+          this.notify();
+        } else {
+          this.enquiries.forEach(e => this.syncDoc('enquiries', e.id, e));
+        }
+      }, err => console.warn('[Firestore] Enquiries listener error:', err));
+
+      // Map Markers Live Listener
+      onSnapshot(collection(db, 'markers'), (snapshot) => {
+        if (!snapshot.empty) {
+          const list: MapMarker[] = [];
+          snapshot.forEach(d => list.push(d.data() as MapMarker));
+          this.mapMarkers = list;
+          saveStorage(STORAGE_KEYS.MARKERS, this.mapMarkers);
+          this.notify();
+        } else {
+          this.mapMarkers.forEach(m => this.syncDoc('markers', m.id, m));
+        }
+      }, err => console.warn('[Firestore] Markers listener error:', err));
+
+      // Tree Profiles Live Listener
+      onSnapshot(collection(db, 'trees'), (snapshot) => {
+        if (!snapshot.empty) {
+          const list: TreeProfile[] = [];
+          snapshot.forEach(d => list.push(d.data() as TreeProfile));
+          this.trees = list;
+          saveStorage(STORAGE_KEYS.TREES, this.trees);
+          this.notify();
+        } else {
+          this.trees.forEach(t => this.syncDoc('trees', t.treeId, t));
+        }
+      }, err => console.warn('[Firestore] Trees listener error:', err));
+
+    } catch (e) {
+      console.warn('[Firestore] Sync init failed:', e);
+    }
+  }
 
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
@@ -88,8 +234,24 @@ class KanvanaStore {
   }
 
   isTreeIdUnique(treeId: string): boolean {
+    if (!treeId || !treeId.trim()) return true;
     const clean = treeId.toUpperCase().trim();
-    return !this.trees.some(t => t.treeId.toUpperCase().trim() === clean);
+    
+    // Check against registered tree profiles
+    const inTrees = this.trees.some(t => {
+      const existing = t.treeId.toUpperCase().trim();
+      return existing === clean || existing === `KANVANA-TREE-${clean}` || existing.endsWith(`-${clean}`);
+    });
+    if (inTrees) return false;
+
+    // Check against existing submissions with treeId
+    const inSubmissions = this.submissions.some(s => {
+      if (!s.treeId) return false;
+      const existing = s.treeId.toUpperCase().trim();
+      return existing === clean || existing === `KANVANA-TREE-${clean}` || existing.endsWith(`-${clean}`);
+    });
+
+    return !inSubmissions;
   }
 
   addCustomTree(treeData: Omit<TreeProfile, 'qrCodeUrl'>): { success: boolean; message?: string; tree?: TreeProfile } {
@@ -109,6 +271,7 @@ class KanvanaStore {
 
     this.trees = [newTree, ...this.trees];
     saveStorage(STORAGE_KEYS.TREES, this.trees);
+    this.syncDoc('trees', cleanId, newTree);
     this.notify();
     this.triggerGoogleDriveWebhook('submission', {
       event: 'NEW_UNIQUE_TREE_REGISTERED',
@@ -144,7 +307,7 @@ class KanvanaStore {
     this.notify();
   }
 
-  async triggerGoogleDriveWebhook(type: 'submission' | 'enquiry' | 'surveyor', data: any) {
+  async triggerGoogleDriveWebhook(type: 'submission' | 'enquiry' | 'surveyor' | 'certificate', data: any) {
     const url = this.getWebhookUrl();
     if (!url) return;
     try {
@@ -177,7 +340,65 @@ class KanvanaStore {
   getEnquiries(): Enquiry[] { return this.enquiries; }
   getSurveyors(): Surveyor[] { return this.surveyors; }
   getTrees(): TreeProfile[] { return this.trees; }
+  getIssuedCertificates(): IssuedCertificate[] { return this.certificates; }
   getLanguage(): Language { return this.language; }
+
+  // Issue e-Certificate and record in persistent store & Google Sheet
+  issueCertificate(data: {
+    recipientName: string;
+    treesPlanted: number;
+    location: string;
+    issuedDate?: string;
+    issuedBy?: 'Public Portal' | 'Admin';
+  }): IssuedCertificate {
+    const certNo = `KNV-CERT-2026-${String(this.certificates.length + 1).padStart(3, '0')}`;
+    const newCert: IssuedCertificate = {
+      id: `cert-${Date.now()}`,
+      certificateNo: certNo,
+      recipientName: data.recipientName.trim(),
+      treesPlanted: data.treesPlanted || 1,
+      location: data.location.trim() || 'Nankari, IIT Kanpur',
+      issuedDate: data.issuedDate || new Date().toISOString().split('T')[0],
+      issuedBy: data.issuedBy || 'Public Portal',
+      createdAt: new Date().toISOString()
+    };
+
+    this.certificates = [newCert, ...this.certificates];
+    saveStorage(STORAGE_KEYS.CERTIFICATES, this.certificates);
+    this.syncDoc('certificates', newCert.id, newCert);
+    this.notify();
+    this.triggerGoogleDriveWebhook('certificate', newCert);
+    return newCert;
+  }
+
+  deleteIssuedCertificate(id: string) {
+    this.certificates = this.certificates.filter(c => c.id !== id);
+    saveStorage(STORAGE_KEYS.CERTIFICATES, this.certificates);
+    this.removeDoc('certificates', id);
+    this.notify();
+  }
+
+  exportCertificatesCSV() {
+    const headers = ['Certificate No', 'Recipient Name', 'Trees Planted', 'Location', 'Issued Date', 'Issued By', 'Created At'];
+    const rows = this.certificates.map(c => [
+      c.certificateNo,
+      `"${c.recipientName.replace(/"/g, '""')}"`,
+      c.treesPlanted,
+      `"${c.location.replace(/"/g, '""')}"`,
+      c.issuedDate,
+      c.issuedBy,
+      c.createdAt
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `kanvana_issued_certificates_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   // Setters & Actions
   setLanguage(lang: Language) {
@@ -193,6 +414,7 @@ class KanvanaStore {
       lastUpdated: new Date().toISOString()
     };
     saveStorage(STORAGE_KEYS.STATS, this.stats);
+    this.syncDoc('impact_stats', 'global', this.stats);
     this.notify();
   }
 
@@ -205,6 +427,7 @@ class KanvanaStore {
     };
     this.enquiries = [newEnq, ...this.enquiries];
     saveStorage(STORAGE_KEYS.ENQUIRIES, this.enquiries);
+    this.syncDoc('enquiries', newEnq.id, newEnq);
     this.notify();
     this.triggerGoogleDriveWebhook('enquiry', newEnq);
     return newEnq;
@@ -213,6 +436,8 @@ class KanvanaStore {
   updateEnquiryStatus(id: string, status: Enquiry['status']) {
     this.enquiries = this.enquiries.map(e => e.id === id ? { ...e, status } : e);
     saveStorage(STORAGE_KEYS.ENQUIRIES, this.enquiries);
+    const updated = this.enquiries.find(e => e.id === id);
+    if (updated) this.syncDoc('enquiries', id, updated);
     this.notify();
   }
 
@@ -226,16 +451,19 @@ class KanvanaStore {
     };
     this.submissions = [newSub, ...this.submissions];
     saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
+    this.syncDoc('submissions', newSub.id, newSub);
 
     // Update Surveyor activity stats
     if (subData.surveyorId || subData.surveyorName) {
       this.surveyors = this.surveyors.map(s => {
         if (s.id === subData.surveyorId || s.name === subData.surveyorName || s.email === subData.surveyorId) {
-          return {
+          const updatedSurv = {
             ...s,
             totalSubmissions: (s.totalSubmissions || 0) + 1,
             lastActive: 'Just now'
           };
+          this.syncDoc('surveyors', s.id, updatedSurv);
+          return updatedSurv;
         }
         return s;
       });
@@ -251,17 +479,20 @@ class KanvanaStore {
     const target = this.submissions.find(s => s.id === id);
     if (!target) return;
 
+    let updatedSub: Submission | null = null;
     this.submissions = this.submissions.map(s => {
       if (s.id === id) {
-        return {
+        updatedSub = {
           ...s,
           status: 'approved' as const,
           publishedAt: new Date().toISOString()
         };
+        return updatedSub;
       }
       return s;
     });
     saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
+    if (updatedSub) this.syncDoc('submissions', id, updatedSub);
 
     // Auto-update site stats tree count
     if (target.treesCount > 0) {
@@ -288,30 +519,34 @@ class KanvanaStore {
       }
     }
 
-    // Auto-generate Tree Profile if trees planted > 0
+    // Auto-generate or use assigned Tree Profile if trees planted > 0
     if (target.treesCount > 0) {
-      const treeId = this.generateNextTreeId();
-      const newTree: TreeProfile = {
-        treeId,
-        submissionId: id,
-        species: target.treeSpecies || 'Neem / Local Shade Species',
-        plantedBy: target.volunteerName,
-        plantedDate: target.activityDate || new Date().toISOString().split('T')[0],
-        locationName: target.locationName || target.volunteerVillage,
-        district: target.district,
-        gps: target.gps,
-        photos: target.photoUrls,
-        growthLog: [
-          {
-            date: target.activityDate || new Date().toISOString().split('T')[0],
-            photo: target.photoUrls[0] || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800',
-            note: 'Planted during Kanvana field activity drive.'
-          }
-        ],
-        qrCodeUrl: `https://kanvana.vercel.app/tree/${treeId}`
-      };
-      this.trees = [newTree, ...this.trees];
-      saveStorage(STORAGE_KEYS.TREES, this.trees);
+      const treeId = target.treeId?.trim().toUpperCase() || this.generateNextTreeId();
+      const exists = this.trees.some(t => t.treeId.toUpperCase().trim() === treeId);
+      if (!exists) {
+        const newTree: TreeProfile = {
+          treeId,
+          submissionId: id,
+          species: target.treeSpecies || 'Neem / Native Shade Species',
+          plantedBy: target.volunteerName,
+          plantedDate: target.activityDate || new Date().toISOString().split('T')[0],
+          locationName: target.locationName || target.volunteerVillage,
+          district: target.district,
+          gps: target.gps,
+          photos: target.photoUrls,
+          growthLog: [
+            {
+              date: target.activityDate || new Date().toISOString().split('T')[0],
+              photo: target.photoUrls[0] || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=800',
+              note: `Planted by ${target.volunteerName} at ${target.locationName || target.volunteerVillage}`
+            }
+          ],
+          qrCodeUrl: `https://kanvana.vercel.app/tree/${treeId}`
+        };
+        this.trees = [newTree, ...this.trees];
+        saveStorage(STORAGE_KEYS.TREES, this.trees);
+        this.syncDoc('trees', treeId, newTree);
+      }
     }
 
     this.notify();
@@ -323,18 +558,22 @@ class KanvanaStore {
 
     const isApproved = target.status === 'approved';
 
+    let updatedSub: Submission | null = null;
     this.submissions = this.submissions.map(s => {
       if (s.id === id) {
-        return {
+        updatedSub = {
           ...s,
           status: 'pending' as const,
           publishedAt: undefined
         };
+        return updatedSub;
       }
       return s;
     });
 
     // Remove associated map markers
+    const markersToRemove = this.mapMarkers.filter(m => m.submissionId === id);
+    markersToRemove.forEach(m => this.removeDoc('markers', m.id));
     this.mapMarkers = this.mapMarkers.filter(m => m.submissionId !== id);
     saveStorage(STORAGE_KEYS.MARKERS, this.mapMarkers);
 
@@ -346,10 +585,13 @@ class KanvanaStore {
     }
 
     // Remove tree profiles created for this submission
+    const treesToRemove = this.trees.filter(t => t.submissionId === id);
+    treesToRemove.forEach(t => this.removeDoc('trees', t.treeId));
     this.trees = this.trees.filter(t => t.submissionId !== id);
     saveStorage(STORAGE_KEYS.TREES, this.trees);
 
     saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
+    if (updatedSub) this.syncDoc('submissions', id, updatedSub);
     this.notify();
     this.triggerGoogleDriveWebhook('submission', { event: 'SUBMISSION_UNPUBLISHED', id });
   }
@@ -364,6 +606,12 @@ class KanvanaStore {
       });
     }
 
+    const markersToRemove = this.mapMarkers.filter(m => m.submissionId === id);
+    markersToRemove.forEach(m => this.removeDoc('markers', m.id));
+
+    const treesToRemove = this.trees.filter(t => t.submissionId === id);
+    treesToRemove.forEach(t => this.removeDoc('trees', t.treeId));
+
     this.submissions = this.submissions.filter(s => s.id !== id);
     this.mapMarkers = this.mapMarkers.filter(m => m.submissionId !== id);
     this.trees = this.trees.filter(t => t.submissionId !== id);
@@ -371,33 +619,40 @@ class KanvanaStore {
     saveStorage(STORAGE_KEYS.MARKERS, this.mapMarkers);
     saveStorage(STORAGE_KEYS.TREES, this.trees);
     saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
+    this.removeDoc('submissions', id);
     this.notify();
     this.triggerGoogleDriveWebhook('submission', { event: 'SUBMISSION_DELETED', id });
   }
 
   rejectSubmission(id: string, rejectionNote: string) {
+    let updatedSub: Submission | null = null;
     this.submissions = this.submissions.map(s => {
       if (s.id === id) {
-        return {
+        updatedSub = {
           ...s,
           status: 'rejected' as const,
           rejectionNote
         };
+        return updatedSub;
       }
       return s;
     });
     saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
+    if (updatedSub) this.syncDoc('submissions', id, updatedSub);
     this.notify();
   }
 
   toggleFeaturedSubmission(id: string) {
+    let updatedSub: Submission | null = null;
     this.submissions = this.submissions.map(s => {
       if (s.id === id) {
-        return { ...s, featured: !s.featured };
+        updatedSub = { ...s, featured: !s.featured };
+        return updatedSub;
       }
       return s;
     });
     saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
+    if (updatedSub) this.syncDoc('submissions', id, updatedSub);
     this.notify();
   }
 
@@ -409,6 +664,7 @@ class KanvanaStore {
     };
     this.mapMarkers = [newMarker, ...this.mapMarkers];
     saveStorage(STORAGE_KEYS.MARKERS, this.mapMarkers);
+    this.syncDoc('markers', newMarker.id, newMarker);
     this.notify();
     return newMarker;
   }
@@ -416,6 +672,7 @@ class KanvanaStore {
   deleteMapMarker(id: string) {
     this.mapMarkers = this.mapMarkers.filter(m => m.id !== id);
     saveStorage(STORAGE_KEYS.MARKERS, this.mapMarkers);
+    this.removeDoc('markers', id);
     this.notify();
   }
 
@@ -430,33 +687,40 @@ class KanvanaStore {
     };
     this.surveyors = [newSurv, ...this.surveyors];
     saveStorage(STORAGE_KEYS.SURVEYORS, this.surveyors);
+    this.syncDoc('surveyors', newSurv.id, newSurv);
     this.notify();
     this.triggerGoogleDriveWebhook('surveyor', newSurv);
     return newSurv;
   }
 
   toggleSurveyorActive(id: string) {
+    let updatedSurv: Surveyor | null = null;
     this.surveyors = this.surveyors.map(s => {
       if (s.id === id) {
-        return { ...s, active: !s.active };
+        updatedSurv = { ...s, active: !s.active };
+        return updatedSurv;
       }
       return s;
     });
     saveStorage(STORAGE_KEYS.SURVEYORS, this.surveyors);
+    if (updatedSurv) this.syncDoc('surveyors', id, updatedSurv);
     this.notify();
   }
 
   addTreeGrowthEntry(treeId: string, entry: { date: string; photo: string; note: string }) {
+    let updatedTree: TreeProfile | null = null;
     this.trees = this.trees.map(t => {
       if (t.treeId === treeId) {
-        return {
+        updatedTree = {
           ...t,
           growthLog: [entry, ...t.growthLog]
         };
+        return updatedTree;
       }
       return t;
     });
     saveStorage(STORAGE_KEYS.TREES, this.trees);
+    if (updatedTree) this.syncDoc('trees', treeId, updatedTree);
     this.notify();
   }
 
@@ -480,6 +744,23 @@ class KanvanaStore {
       saveStorage(STORAGE_KEYS.STORY_IMAGES, this.storyImages);
       this.notify();
     }
+  }
+
+  exportInitialDataTsCode(): string {
+    return `import { SiteStats, Submission, MapMarker, Enquiry, Surveyor, TreeProfile } from '../types';
+
+export const initialSiteStats: SiteStats = ${JSON.stringify(this.stats, null, 2)};
+
+export const initialSubmissions: Submission[] = ${JSON.stringify(this.submissions, null, 2)};
+
+export const initialMapMarkers: MapMarker[] = ${JSON.stringify(this.mapMarkers, null, 2)};
+
+export const initialEnquiries: Enquiry[] = ${JSON.stringify(this.enquiries, null, 2)};
+
+export const initialSurveyors: Surveyor[] = ${JSON.stringify(this.surveyors, null, 2)};
+
+export const initialTrees: TreeProfile[] = ${JSON.stringify(this.trees, null, 2)};
+`;
   }
 
   resetToDefaults() {

@@ -36,17 +36,17 @@ export const ProcessFlow: React.FC<ProcessFlowProps> = ({ language }) => {
   ];
 
   return (
-    <section className="py-24 bg-[#0D2818] text-[#F9FBF7] relative border-b border-[#1B5E34]">
+    <section className="py-24 bg-[#0A3319] text-white relative border-b border-emerald-900/20 shadow-inner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#F4C430] block mb-2">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-[#F4C430] block mb-2">
             Execution Lifecycle
           </span>
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-[#F9FBF7] tracking-tight">
+          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-white tracking-tight">
             {getTranslation(language, 'process_title')}
           </h2>
-          <p className="mt-4 text-[#86EFAC] text-base">
+          <p className="mt-4 text-emerald-200 text-base">
             From field enquiry to verified survival tracking on our digital ecosystem.
           </p>
         </div>
@@ -55,22 +55,22 @@ export const ProcessFlow: React.FC<ProcessFlowProps> = ({ language }) => {
           {steps.map((s, idx) => (
             <div
               key={s.num}
-              className="bg-[#1B5E34]/30 p-6 sm:p-8 rounded-3xl border border-[#1B5E34] hover:border-[#F4C430] transition-all relative flex flex-col justify-between"
+              className="bg-emerald-950/60 p-6 sm:p-8 rounded-3xl border border-emerald-800/80 hover:border-[#F4C430] transition-all relative flex flex-col justify-between shadow-xl"
             >
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <span className="font-display font-extrabold text-4xl text-[#F4C430]">
                     {s.num}
                   </span>
-                  <div className="p-3 bg-[#0D2818] rounded-2xl border border-[#1B5E34]">
+                  <div className="p-3 bg-[#0A3319] rounded-2xl border border-emerald-800">
                     {s.icon}
                   </div>
                 </div>
 
-                <h3 className="font-display font-bold text-xl text-[#F9FBF7] mb-2">
+                <h3 className="font-display font-bold text-xl text-white mb-2">
                   {s.title}
                 </h3>
-                <p className="text-xs text-[#F9FBF7]/80 leading-relaxed">
+                <p className="text-xs text-emerald-100/90 leading-relaxed">
                   {s.desc}
                 </p>
               </div>

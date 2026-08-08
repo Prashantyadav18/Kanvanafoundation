@@ -40,17 +40,17 @@ export const MissionPillars: React.FC<MissionPillarsProps> = ({ language, onSele
   ];
 
   return (
-    <section id="pillars" className="py-24 bg-[#F9FBF7] text-[#1A2E1F] relative">
+    <section id="pillars" className="py-24 bg-[#E8F2EA] text-slate-800 relative border-b border-emerald-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#1B5E34] block mb-2">
+          <span className="text-xs font-black uppercase tracking-widest text-[#15803D] bg-emerald-100/90 px-3.5 py-1 rounded-full border border-emerald-300 inline-block mb-3">
             What We Do
           </span>
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-[#0D2818] tracking-tight">
+          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-[#0A3319] tracking-tight">
             {getTranslation(language, 'pillars_title')}
           </h2>
-          <p className="mt-4 text-[#6B7F6E] text-base sm:text-lg">
+          <p className="mt-4 text-slate-700 font-medium text-base sm:text-lg">
             Structured field interventions designed for long-term ecological survival and community ownership.
           </p>
         </div>
@@ -59,7 +59,7 @@ export const MissionPillars: React.FC<MissionPillarsProps> = ({ language, onSele
           {pillars.map((p) => (
             <div
               key={p.id}
-              className="group bg-[#0D2818] text-[#F9FBF7] rounded-3xl border border-[#1B5E34] overflow-hidden shadow-xl hover:border-[#4CAF50] transition-all flex flex-col justify-between"
+              className="group bg-white text-slate-900 rounded-3xl border-2 border-emerald-200/90 overflow-hidden shadow-lg hover:shadow-2xl hover:border-[#15803D] transition-all transform hover:-translate-y-1 flex flex-col justify-between"
             >
               {/* Image Header */}
               <div className="relative h-56 overflow-hidden">
@@ -69,8 +69,8 @@ export const MissionPillars: React.FC<MissionPillarsProps> = ({ language, onSele
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0D2818] via-transparent to-transparent" />
-                <span className="absolute top-4 right-4 bg-[#0D2818]/90 text-[#86EFAC] text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-[#1B5E34]">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A3319]/60 via-transparent to-transparent" />
+                <span className="absolute top-4 right-4 bg-[#0A3319] text-[#F4C430] text-[10px] font-black uppercase px-3 py-1 rounded-full border border-[#F4C430]/40 shadow-md">
                   {p.tag}
                 </span>
               </div>
@@ -79,28 +79,27 @@ export const MissionPillars: React.FC<MissionPillarsProps> = ({ language, onSele
               <div className="p-8 space-y-4 flex-1 flex flex-col justify-between">
                 <div>
                   <div className="mb-4">{p.icon}</div>
-                  <h3 className="font-display font-bold text-2xl text-[#F9FBF7] group-hover:text-[#86EFAC] transition-colors">
+                  <h3 className="font-display font-extrabold text-2xl text-[#0A3319] group-hover:text-[#15803D] transition-colors">
                     {p.title}
                   </h3>
-                  <p className="mt-2 text-sm text-[#F9FBF7]/80 leading-relaxed">
+                  <p className="mt-2 text-sm text-slate-600 leading-relaxed font-normal">
                     {p.body}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[#1B5E34]">
+                <div className="pt-4 border-t border-emerald-100">
                   <button
                     onClick={() => onSelectAction(p.id)}
-                    className="w-full py-3 px-4 rounded-xl bg-[#1B5E34]/60 hover:bg-[#4CAF50] text-[#86EFAC] hover:text-[#0D2818] text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center space-x-2"
+                    className="w-full py-3 px-4 rounded-xl bg-[#0A3319] hover:bg-[#15803D] text-[#F4C430] hover:text-white text-xs font-extrabold uppercase tracking-wider transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md"
                   >
                     <span>{p.actionText}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 text-[#F4C430]" />
                   </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );

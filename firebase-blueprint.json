@@ -1,0 +1,108 @@
+{
+  "entities": {
+    "submissions": {
+      "title": "Submissions",
+      "description": "Tree plantation submission records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "volunteerName": { "type": "string" },
+        "volunteerPhone": { "type": "string" },
+        "volunteerVillage": { "type": "string" },
+        "treesPlanted": { "type": "number" },
+        "activityType": { "type": "string" },
+        "locationName": { "type": "string" },
+        "district": { "type": "string" },
+        "surveyorName": { "type": "string" },
+        "notes": { "type": "string" },
+        "photoUrls": { "type": "array", "items": { "type": "string" } },
+        "photoUrl": { "type": "string" },
+        "coordinates": { "type": "object" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["id", "volunteerName", "treesPlanted"]
+    },
+    "surveyors": {
+      "title": "Surveyors",
+      "description": "Registered field surveyors",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string" },
+        "district": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "active": { "type": "boolean" },
+        "totalVerified": { "type": "number" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "certificates": {
+      "title": "Certificates",
+      "description": "Issued plantation certificates",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "certificateNo": { "type": "string" },
+        "recipientName": { "type": "string" },
+        "treesPlanted": { "type": "number" },
+        "location": { "type": "string" },
+        "issuedDate": { "type": "string" },
+        "issuedBy": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["id", "certificateNo", "recipientName"]
+    },
+    "events": {
+      "title": "Events",
+      "description": "Plantation drives and events",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "location": { "type": "string" },
+        "district": { "type": "string" },
+        "targetTrees": { "type": "number" },
+        "plantedCount": { "type": "number" },
+        "status": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["id", "title"]
+    },
+    "enquiries": {
+      "title": "Enquiries",
+      "description": "User inquiries and volunteer applications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "type": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    },
+    "impact_stats": {
+      "title": "Impact Stats",
+      "description": "Global aggregated stats for live sync",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "totalTrees": { "type": "number" },
+        "totalVolunteers": { "type": "number" },
+        "totalDistricts": { "type": "number" },
+        "treesThisMonth": { "type": "number" },
+        "lastSyncTimestamp": { "type": "string" }
+      },
+      "required": ["id"]
+    }
+  }
+}

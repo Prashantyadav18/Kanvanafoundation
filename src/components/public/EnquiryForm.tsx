@@ -60,35 +60,35 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
   };
 
   return (
-    <section id="enquiry" className="py-24 bg-[#0D2818] text-[#F9FBF7] relative border-b border-[#1B5E34]">
+    <section id="enquiry" className="py-24 bg-[#EDF5EE] text-slate-800 relative border-b border-emerald-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#1B5E34] text-[#86EFAC] text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-[#F4C430]" />
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 text-[#0A3319] text-xs font-extrabold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
             <span>Join Kanvana Network</span>
           </div>
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-[#F9FBF7] tracking-tight">
+          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-[#0A3319] tracking-tight">
             {getTranslation(language, 'form_title')}
           </h2>
-          <p className="text-sm text-[#86EFAC]">
+          <p className="text-sm text-slate-600">
             {getTranslation(language, 'form_subtitle')}
           </p>
         </div>
 
-        <div className="bg-[#1B5E34]/30 rounded-3xl border-2 border-[#1B5E34] p-8 sm:p-12 shadow-2xl relative">
+        <div className="bg-[#F8FAF6] rounded-3xl border-2 border-emerald-200 p-8 sm:p-12 shadow-xl relative">
           
           {submitted ? (
             <div className="text-center py-12 space-y-6 animate-fadeIn">
-              <div className="w-20 h-20 bg-[#4CAF50] text-[#0D2818] rounded-full p-4 mx-auto flex items-center justify-center shadow-2xl">
+              <div className="w-20 h-20 bg-[#16A34A] text-white rounded-full p-4 mx-auto flex items-center justify-center shadow-2xl">
                 <TreePine className="w-12 h-12 animate-bounce" />
               </div>
 
               <div>
-                <h3 className="font-display font-extrabold text-2xl text-[#F4C430]">
+                <h3 className="font-display font-extrabold text-2xl text-[#0A3319]">
                   THANK YOU FOR STANDING WITH NATURE!
                 </h3>
-                <p className="text-sm text-[#86EFAC] max-w-md mx-auto mt-2">
+                <p className="text-sm text-slate-600 max-w-md mx-auto mt-2">
                   We have received your message. Prashant or our team from Nankari, IIT Kanpur will reach out within 48 hours. 🌱
                 </p>
               </div>
@@ -106,7 +106,7 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
                     message: ''
                   });
                 }}
-                className="px-6 py-2.5 rounded-xl bg-[#1B5E34] text-[#86EFAC] text-xs font-bold uppercase tracking-wider hover:bg-[#4CAF50] hover:text-[#0D2818] transition-colors"
+                className="px-6 py-2.5 rounded-xl bg-[#0A3319] text-[#F4C430] text-xs font-extrabold uppercase tracking-wider hover:bg-[#15803D] hover:text-white transition-all cursor-pointer shadow-md"
               >
                 Send Another Message
               </button>
@@ -115,14 +115,14 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
             <form onSubmit={handleSubmit} className="space-y-6">
               
               {error && (
-                <div className="p-4 rounded-xl bg-red-900/50 border border-red-500 text-red-200 text-xs font-semibold">
+                <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
                   {error}
                 </div>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-[#0A3319] block mb-2">
                     Full Name *
                   </label>
                   <input
@@ -131,12 +131,12 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="e.g. Your Full Name"
-                    className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-3 text-sm text-[#F9FBF7] placeholder-[#6B7F6E] focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full bg-white border border-emerald-200 rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#15803D] focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-[#0A3319] block mb-2">
                     Mobile Number *
                   </label>
                   <input
@@ -145,14 +145,14 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="e.g. +91 83182 88563"
-                    className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-3 text-sm text-[#F9FBF7] placeholder-[#6B7F6E] focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full bg-white border border-emerald-200 rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#15803D] focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-[#0A3319] block mb-2">
                     Email Address
                   </label>
                   <input
@@ -160,12 +160,12 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="e.g. rahul@example.com"
-                    className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-3 text-sm text-[#F9FBF7] placeholder-[#6B7F6E] focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full bg-white border border-emerald-200 rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#15803D] focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-[#0A3319] block mb-2">
                     City / District *
                   </label>
                   <input
@@ -174,20 +174,20 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     placeholder="e.g. Kanpur Dehat / Lucknow"
-                    className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-3 text-sm text-[#F9FBF7] placeholder-[#6B7F6E] focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full bg-white border border-emerald-200 rounded-2xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#15803D] focus:ring-2 focus:ring-emerald-100"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-[#0A3319] block mb-2">
                     I want to... *
                   </label>
                   <select
                     value={formData.intent}
                     onChange={(e) => setFormData({ ...formData, intent: e.target.value as any })}
-                    className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-3 text-sm text-[#F9FBF7] focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full bg-white border border-emerald-200 rounded-2xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-[#15803D] focus:ring-2 focus:ring-emerald-100"
                   >
                     <option value="Plant trees with you">Plant trees with you</option>
                     <option value="Sponsor a plantation drive">Sponsor a plantation drive</option>
@@ -199,13 +199,13 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-[#0A3319] block mb-2">
                     How did you hear about us?
                   </label>
                   <select
                     value={formData.source}
                     onChange={(e) => setFormData({ ...formData, source: e.target.value as any })}
-                    className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl px-4 py-3 text-sm text-[#F9FBF7] focus:outline-none focus:border-[#4CAF50]"
+                    className="w-full bg-white border border-emerald-200 rounded-2xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-[#15803D] focus:ring-2 focus:ring-emerald-100"
                   >
                     <option value="IIT Kanpur Campus">IIT Kanpur Campus</option>
                     <option value="Social Media">Social Media</option>
@@ -218,7 +218,7 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase text-[#86EFAC] block mb-2">
+                <label className="text-xs font-extrabold uppercase text-[#0A3319] block mb-2">
                   Message / Details
                 </label>
                 <textarea
@@ -226,20 +226,20 @@ export const EnquiryForm: React.FC<EnquiryFormProps> = ({ language }) => {
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Share details about your location, available land, or preferred timeline..."
-                  className="w-full bg-[#0D2818] border border-[#1B5E34] rounded-2xl p-4 text-sm text-[#F9FBF7] placeholder-[#6B7F6E] focus:outline-none focus:border-[#4CAF50]"
+                  className="w-full bg-white border border-emerald-200 rounded-2xl p-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#15803D] focus:ring-2 focus:ring-emerald-100"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-2xl bg-[#F4C430] text-[#0D2818] font-display font-bold text-sm uppercase tracking-wider hover:bg-[#FFF5C0] transition-all shadow-xl flex items-center justify-center space-x-2"
+                className="w-full py-4 rounded-2xl bg-[#0A3319] text-[#F4C430] font-display font-extrabold text-sm uppercase tracking-wider hover:bg-[#15803D] hover:text-white transition-all shadow-xl flex items-center justify-center space-x-2 cursor-pointer"
               >
                 {loading ? (
                   <span>Submitting Interest...</span>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
+                    <Send className="w-4 h-4 text-[#F4C430]" />
                     <span>Send My Interest</span>
                   </>
                 )}

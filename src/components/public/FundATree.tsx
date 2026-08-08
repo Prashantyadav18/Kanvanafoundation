@@ -180,21 +180,21 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
   };
 
   return (
-    <section id="fund" className="py-24 bg-[#F9FBF7] text-[#1A2E1F] relative">
+    <section id="fund" className="py-24 bg-[#EDF5EE] text-slate-800 relative border-b border-emerald-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#1B5E34] text-[#86EFAC] text-xs font-bold uppercase tracking-wider">
-            <Heart className="w-3.5 h-3.5 text-[#F4C430] fill-current" />
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 text-[#0A3319] text-xs font-extrabold uppercase tracking-wider">
+            <Heart className="w-3.5 h-3.5 text-[#D97706] fill-current" />
             <span>Direct Field Funding & Sponsorship</span>
           </div>
 
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-[#0D2818] tracking-tight">
+          <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-[#0A3319] tracking-tight">
             {getTranslation(language, 'fund_title')}
           </h2>
 
-          <p className="text-sm sm:text-base text-[#6B7F6E]">
+          <p className="text-sm sm:text-base text-slate-600">
             {getTranslation(language, 'fund_subtitle')}
           </p>
         </div>
@@ -207,12 +207,12 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
               onClick={() => handleSelectTier(t)}
               className={`cursor-pointer rounded-3xl p-6 border-2 transition-all flex flex-col justify-between relative group hover:scale-[1.03] ${
                 t.popular
-                  ? 'bg-[#0D2818] text-[#F9FBF7] border-[#F4C430] shadow-2xl ring-2 ring-[#F4C430]/30'
-                  : 'bg-[#0D2818]/95 text-[#F9FBF7] border-[#1B5E34] hover:border-[#4CAF50]'
+                  ? 'bg-[#0A3319] text-white border-[#F4C430] shadow-2xl ring-4 ring-[#F4C430]/20'
+                  : 'bg-white text-slate-900 border-emerald-100 hover:border-emerald-300 shadow-md'
               }`}
             >
               {t.popular && (
-                <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#F4C430] text-[#0D2818] text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full shadow-md flex items-center space-x-1">
+                <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#F4C430] text-[#0A3319] text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full shadow-md flex items-center space-x-1">
                   <Sparkles className="w-3 h-3 fill-current" />
                   <span>Most Popular</span>
                 </span>
@@ -220,19 +220,19 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-baseline">
-                  <span className="font-display font-extrabold text-2xl text-[#4CAF50] block">
+                  <span className={`font-display font-extrabold text-2xl block ${t.popular ? 'text-[#F4C430]' : 'text-[#15803D]'}`}>
                     {t.title}
                   </span>
                 </div>
 
-                <p className="text-xs text-[#F9FBF7]/80 leading-relaxed">
+                <p className={`text-xs leading-relaxed ${t.popular ? 'text-emerald-100' : 'text-slate-600'}`}>
                   {t.desc}
                 </p>
 
-                <ul className="space-y-2 pt-3 border-t border-[#1B5E34]">
+                <ul className={`space-y-2 pt-3 border-t ${t.popular ? 'border-emerald-800' : 'border-slate-100'}`}>
                   {t.perks.map((p, idx) => (
-                    <li key={idx} className="flex items-start space-x-2 text-xs text-[#86EFAC]">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#F4C430] shrink-0 mt-0.5" />
+                    <li key={idx} className={`flex items-start space-x-2 text-xs ${t.popular ? 'text-emerald-200' : 'text-slate-700'}`}>
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${t.popular ? 'text-[#F4C430]' : 'text-[#15803D]'}`} />
                       <span>{p}</span>
                     </li>
                   ))}
@@ -245,10 +245,10 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
                     e.stopPropagation();
                     handleSelectTier(t);
                   }}
-                  className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-md ${
+                  className={`w-full py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-md cursor-pointer ${
                     t.popular
-                      ? 'bg-[#F4C430] hover:bg-[#FFE066] text-[#0D2818]'
-                      : 'bg-[#1B5E34] hover:bg-[#4CAF50] text-[#86EFAC] hover:text-[#0D2818]'
+                      ? 'bg-[#F4C430] hover:bg-white text-[#0A3319]'
+                      : 'bg-emerald-50 hover:bg-[#0A3319] text-[#15803D] hover:text-[#F4C430] border border-emerald-200'
                   }`}
                 >
                   <Leaf className="w-4 h-4" />
@@ -260,8 +260,12 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
         </div>
 
         {/* Direct Bank Details & Verification Info Banner */}
-        <div className="bg-[#0D2818] text-[#F9FBF7] rounded-3xl border-2 border-[#1B5E34] p-6 lg:p-10 shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-4 flex flex-col items-center text-center p-5 bg-[#1B5E34]/30 rounded-2xl border border-[#1B5E34]">
+        <div className="bg-[#0A3319] text-white rounded-3xl border-2 border-[#F4C430] p-6 lg:p-8 shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative overflow-hidden">
+          {/* Background Ambient Glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* QR Code & UPI Copy */}
+          <div className="lg:col-span-4 flex flex-col items-center text-center p-5 bg-[#031A0D] rounded-2xl border-2 border-emerald-500/40 relative z-10 shadow-inner">
             <div className="w-44 h-44 bg-white p-2.5 rounded-2xl shadow-xl flex flex-col items-center justify-center mb-3 border-4 border-[#F4C430]">
               <img
                 src={qrCodeUrl}
@@ -269,53 +273,59 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
                 className="w-full h-full object-contain"
               />
             </div>
-            <p className="text-xs font-mono font-bold text-[#86EFAC]">UPI ID: {upiId}</p>
+            <p className="text-xs font-mono font-black text-[#86EFAC] tracking-wider">UPI ID: {upiId}</p>
             <button
               onClick={handleCopyUpi}
-              className="mt-2 px-3 py-1.5 rounded-lg bg-[#1B5E34] hover:bg-[#4CAF50] text-[#86EFAC] hover:text-[#0D2818] text-xs font-semibold transition-colors flex items-center space-x-1"
+              className="mt-2.5 px-4 py-2 rounded-xl bg-[#F4C430] hover:bg-white text-[#0A3319] text-xs font-black transition-all flex items-center space-x-1.5 cursor-pointer shadow-lg hover:scale-105 active:scale-95"
             >
               <Copy className="w-3.5 h-3.5" />
               <span>{copied ? 'Copied UPI ID!' : 'Copy UPI ID'}</span>
             </button>
           </div>
 
-          <div className="lg:col-span-8 space-y-4">
+          {/* Account Details Box - High Contrast & Crisp Visibility */}
+          <div className="lg:col-span-8 space-y-5 relative z-10">
             <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-[#F4C430] block mb-1">
+              <span className="text-xs font-black uppercase tracking-widest text-[#F4C430] block mb-1">
                 Direct Bank Transfer Account
               </span>
-              <h3 className="font-display font-extrabold text-2xl text-[#F9FBF7]">
+              <h3 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-wide">
                 KANVANA FOUNDATION OFFICIAL ACCOUNT
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#1B5E34]/20 p-5 rounded-2xl border border-[#1B5E34] text-xs">
-              <div className="border-b sm:border-b-0 sm:border-r border-[#1B5E34] pb-2 sm:pb-0 sm:pr-4 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-[#6B7F6E]">Account Holder:</span>
-                  <span className="font-bold text-[#F9FBF7]">Prashant Yadav</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#031A0D] p-5 sm:p-6 rounded-2xl border-2 border-emerald-500/50 text-sm shadow-inner">
+              <div className="border-b sm:border-b-0 sm:border-r border-emerald-800/80 pb-3 sm:pb-0 sm:pr-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-emerald-300 font-bold text-xs sm:text-sm">Account Holder:</span>
+                  <span className="font-black text-white text-sm sm:text-base">Prashant Yadav</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[#6B7F6E]">Bank Name:</span>
-                  <span className="font-bold text-[#F9FBF7]">Kotak Mahindra Bank</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-emerald-300 font-bold text-xs sm:text-sm">Bank Name:</span>
+                  <span className="font-black text-white text-sm sm:text-base">Kotak Mahindra Bank</span>
                 </div>
               </div>
-              <div className="pt-2 sm:pt-0 sm:pl-2 space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-[#6B7F6E]">Account Number:</span>
-                  <span className="font-mono font-bold text-[#F4C430]">6349227535</span>
+
+              <div className="pt-2 sm:pt-0 sm:pl-2 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-emerald-300 font-bold text-xs sm:text-sm">Account No:</span>
+                  <span className="font-mono font-black text-[#F4C430] text-sm sm:text-base bg-[#082813] px-2.5 py-1 rounded-lg border border-amber-500/50 shadow-inner">
+                    6349227535
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[#6B7F6E]">IFSC Code:</span>
-                  <span className="font-mono font-bold text-[#86EFAC]">KKBK0005133</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-emerald-300 font-bold text-xs sm:text-sm">IFSC Code:</span>
+                  <span className="font-mono font-black text-[#86EFAC] text-sm sm:text-base bg-[#082813] px-2.5 py-1 rounded-lg border border-emerald-500/50 shadow-inner">
+                    KKBK0005133
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#F4C430]/10 border border-[#F4C430]/30 text-xs text-[#F4C430] flex items-start space-x-2">
-              <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
-              <p>
-                Click any Tier above to open the instant Info & Payment form. Upload your payment screenshot to automatically send your details to the Admin Panel and get your official Digital Certificate!
+            <div className="p-4 rounded-2xl bg-amber-950/50 border border-amber-400/50 text-xs sm:text-sm text-amber-200 flex items-start space-x-3 shadow-md">
+              <ShieldAlert className="w-5 h-5 shrink-0 text-[#F4C430] mt-0.5" />
+              <p className="leading-relaxed">
+                Click any Tier above to open the instant Info & Payment form. Upload your payment screenshot to automatically send your details to the Admin Panel and receive your official Digital Certificate!
               </p>
             </div>
           </div>
@@ -325,13 +335,14 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
 
       {/* MODAL 1: SPONSORSHIP INFO & PAYMENT FORM MODAL */}
       {isModalOpen && selectedTier && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#0D2818] border-2 border-[#F4C430] rounded-3xl max-w-xl w-full p-6 sm:p-8 text-[#F9FBF7] shadow-2xl relative my-8 animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md overflow-y-auto p-3 sm:p-6">
+          <div className="min-h-full w-full flex items-center justify-center py-4 sm:py-8">
+            <div className="bg-[#0A3319] border-2 border-[#F4C430] rounded-2xl sm:rounded-3xl max-w-xl w-full p-5 sm:p-8 text-white shadow-2xl relative my-auto animate-in fade-in zoom-in duration-200">
             
             {/* Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-[#1B5E34] text-[#86EFAC] hover:bg-[#4CAF50] hover:text-[#0D2818] transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full bg-[#15803D] text-[#86EFAC] hover:bg-[#F4C430] hover:text-[#0A3319] transition-all cursor-pointer z-10 shadow-md"
             >
               <X className="w-5 h-5" />
             </button>
@@ -492,12 +503,14 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
 
           </div>
         </div>
+      </div>
       )}
 
       {/* MODAL 2: GENERATED DIGITAL CERTIFICATE MODAL */}
       {generatedCert && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FFFDF6] text-[#0D2818] rounded-3xl max-w-2xl w-full p-6 sm:p-10 border-8 border-[#1B5E34] shadow-2xl relative my-8 animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md overflow-y-auto p-3 sm:p-6">
+          <div className="min-h-full w-full flex items-center justify-center py-4 sm:py-8">
+            <div className="bg-[#FFFDF6] text-[#0D2818] rounded-2xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-10 border-8 border-[#15803D] shadow-2xl relative my-auto animate-in fade-in zoom-in duration-300">
             
             {/* Close Button */}
             <button
@@ -588,6 +601,7 @@ export const FundATree: React.FC<FundATreeProps> = ({ language }) => {
 
           </div>
         </div>
+      </div>
       )}
 
     </section>

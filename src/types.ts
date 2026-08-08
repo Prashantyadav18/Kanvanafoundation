@@ -44,6 +44,7 @@ export interface Submission {
   publishedAt?: string;
   createdAt: string;
   treeSpecies?: string;
+  treeId?: string;
 }
 
 export interface Enquiry {
@@ -116,3 +117,14 @@ export interface TreeProfile {
 }
 
 export type Language = 'en' | 'hi';
+
+export interface IssuedCertificate {
+  id: string;
+  certificateNo: string;
+  recipientName: string;
+  treesPlanted: number;
+  location: string;
+  issuedDate: string;
+  issuedBy: 'Public Portal' | 'Admin';
+  createdAt: string;
+}

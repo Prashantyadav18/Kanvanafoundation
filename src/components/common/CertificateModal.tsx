@@ -96,7 +96,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[999] bg-[#0D2818]/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto no-print-bg">
+    <div className="fixed inset-0 z-[999] bg-black/85 backdrop-blur-md overflow-y-auto p-3 sm:p-6 no-print-bg">
       {/* Print CSS styles */}
       <style>{`
         @media print {
@@ -134,7 +134,8 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
         }
       `}</style>
 
-      <div className="bg-[#0D2818] border-2 border-[#1B5E34] rounded-3xl max-w-5xl w-full p-6 lg:p-8 shadow-2xl relative my-8 text-[#F9FBF7] no-print">
+      <div className="min-h-full w-full flex items-center justify-center py-4 sm:py-8">
+        <div className="bg-[#0A3319] border-2 border-[#15803D] rounded-2xl sm:rounded-3xl max-w-5xl w-full p-4 sm:p-8 shadow-2xl relative text-white my-auto no-print">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -348,5 +349,6 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
