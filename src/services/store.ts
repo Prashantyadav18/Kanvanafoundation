@@ -6,6 +6,7 @@ import {
   initialEnquiries, initialSurveyors, initialTrees 
 } from '../data/initialData';
 import { db, collection, doc, setDoc, deleteDoc, onSnapshot } from '../lib/firebase';
+import { compressImage } from '../utils/imageCompressor';
 
 const STORAGE_KEYS = {
   STATS: 'kanvana_site_stats_v4',
@@ -90,6 +91,7 @@ class KanvanaStore {
   );
 
   private listeners: Set<Listener> = new Set();
+  private hasInitialLoaded: { [key: string]: boolean } = {};
 
   constructor() {
     this.initFirestoreSync();
@@ -100,7 +102,7 @@ class KanvanaStore {
       if (!docId) return;
       await setDoc(doc(db, collectionName, docId), data, { merge: true });
     } catch (e) {
-      console.warn(`[Firestore Sync] Failed to sync ${collectionName}/${docId}:`, e);
+      console.error(`[Firestore Sync Error] Failed to sync ${collectionName}/${docId}:`, e);
     }
   }
 
@@ -109,8 +111,20 @@ class KanvanaStore {
       if (!docId) return;
       await deleteDoc(doc(db, collectionName, docId));
     } catch (e) {
-      console.warn(`[Firestore Sync] Failed to delete ${collectionName}/${docId}:`, e);
+      console.error(`[Firestore Sync Error] Failed to delete ${collectionName}/${docId}:`, e);
     }
+  }
+
+  private async compressPhotoUrls(urls: string[]): Promise<string[]> {
+    if (!urls || urls.length === 0) return urls;
+    return Promise.all(
+      urls.map(async u => {
+        if (u && typeof u === 'string' && u.startsWith('data:image')) {
+          return await compressImage(u, 600, 600, 0.70);
+        }
+        return u;
+      })
+    );
   }
 
   private initFirestoreSync() {
@@ -124,8 +138,16 @@ class KanvanaStore {
           this.submissions = list;
           saveStorage(STORAGE_KEYS.SUBMISSIONS, this.submissions);
           this.notify();
+          this.hasInitialLoaded['submissions'] = true;
         } else {
-          this.submissions.forEach(s => this.syncDoc('submissions', s.id, s));
+          if (!this.hasInitialLoaded['submissions']) {
+            this.hasInitialLoaded['submissions'] = true;
+            this.submissions.forEach(s => this.syncDoc('submissions', s.id, s));
+          } else {
+            this.submissions = [];
+            saveStorage(STORAGE_KEYS.SUBMISSIONS, []);
+            this.notify();
+          }
         }
       }, err => console.warn('[Firestore] Submissions listener error:', err));
 
@@ -137,8 +159,16 @@ class KanvanaStore {
           this.surveyors = list;
           saveStorage(STORAGE_KEYS.SURVEYORS, this.surveyors);
           this.notify();
+          this.hasInitialLoaded['surveyors'] = true;
         } else {
-          this.surveyors.forEach(s => this.syncDoc('surveyors', s.id, s));
+          if (!this.hasInitialLoaded['surveyors']) {
+            this.hasInitialLoaded['surveyors'] = true;
+            this.surveyors.forEach(s => this.syncDoc('surveyors', s.id, s));
+          } else {
+            this.surveyors = [];
+            saveStorage(STORAGE_KEYS.SURVEYORS, []);
+            this.notify();
+          }
         }
       }, err => console.warn('[Firestore] Surveyors listener error:', err));
 
@@ -151,8 +181,16 @@ class KanvanaStore {
           this.certificates = list;
           saveStorage(STORAGE_KEYS.CERTIFICATES, this.certificates);
           this.notify();
+          this.hasInitialLoaded['certificates'] = true;
         } else {
-          this.certificates.forEach(c => this.syncDoc('certificates', c.id, c));
+          if (!this.hasInitialLoaded['certificates']) {
+            this.hasInitialLoaded['certificates'] = true;
+            this.certificates.forEach(c => this.syncDoc('certificates', c.id, c));
+          } else {
+            this.certificates = [];
+            saveStorage(STORAGE_KEYS.CERTIFICATES, []);
+            this.notify();
+          }
         }
       }, err => console.warn('[Firestore] Certificates listener error:', err));
 
@@ -162,8 +200,12 @@ class KanvanaStore {
           this.stats = { ...this.stats, ...(docSnap.data() as SiteStats) };
           saveStorage(STORAGE_KEYS.STATS, this.stats);
           this.notify();
+          this.hasInitialLoaded['stats'] = true;
         } else {
-          this.syncDoc('impact_stats', 'global', this.stats);
+          if (!this.hasInitialLoaded['stats']) {
+            this.hasInitialLoaded['stats'] = true;
+            this.syncDoc('impact_stats', 'global', this.stats);
+          }
         }
       }, err => console.warn('[Firestore] Stats listener error:', err));
 
@@ -175,8 +217,16 @@ class KanvanaStore {
           this.enquiries = list;
           saveStorage(STORAGE_KEYS.ENQUIRIES, this.enquiries);
           this.notify();
+          this.hasInitialLoaded['enquiries'] = true;
         } else {
-          this.enquiries.forEach(e => this.syncDoc('enquiries', e.id, e));
+          if (!this.hasInitialLoaded['enquiries']) {
+            this.hasInitialLoaded['enquiries'] = true;
+            this.enquiries.forEach(e => this.syncDoc('enquiries', e.id, e));
+          } else {
+            this.enquiries = [];
+            saveStorage(STORAGE_KEYS.ENQUIRIES, []);
+            this.notify();
+          }
         }
       }, err => console.warn('[Firestore] Enquiries listener error:', err));
 
@@ -188,8 +238,16 @@ class KanvanaStore {
           this.mapMarkers = list;
           saveStorage(STORAGE_KEYS.MARKERS, this.mapMarkers);
           this.notify();
+          this.hasInitialLoaded['markers'] = true;
         } else {
-          this.mapMarkers.forEach(m => this.syncDoc('markers', m.id, m));
+          if (!this.hasInitialLoaded['markers']) {
+            this.hasInitialLoaded['markers'] = true;
+            this.mapMarkers.forEach(m => this.syncDoc('markers', m.id, m));
+          } else {
+            this.mapMarkers = [];
+            saveStorage(STORAGE_KEYS.MARKERS, []);
+            this.notify();
+          }
         }
       }, err => console.warn('[Firestore] Markers listener error:', err));
 
@@ -201,10 +259,57 @@ class KanvanaStore {
           this.trees = list;
           saveStorage(STORAGE_KEYS.TREES, this.trees);
           this.notify();
+          this.hasInitialLoaded['trees'] = true;
         } else {
-          this.trees.forEach(t => this.syncDoc('trees', t.treeId, t));
+          if (!this.hasInitialLoaded['trees']) {
+            this.hasInitialLoaded['trees'] = true;
+            this.trees.forEach(t => this.syncDoc('trees', t.treeId, t));
+          } else {
+            this.trees = [];
+            saveStorage(STORAGE_KEYS.TREES, []);
+            this.notify();
+          }
         }
       }, err => console.warn('[Firestore] Trees listener error:', err));
+
+      // Founder Photo Live Listener
+      onSnapshot(doc(db, 'settings', 'founder'), (docSnap) => {
+        if (docSnap.exists() && docSnap.data().url) {
+          this.founderPhoto = docSnap.data().url;
+          saveStorage(STORAGE_KEYS.FOUNDER_PHOTO, this.founderPhoto);
+          this.notify();
+          this.hasInitialLoaded['founder'] = true;
+        } else if (!this.hasInitialLoaded['founder'] && this.founderPhoto) {
+          this.hasInitialLoaded['founder'] = true;
+          this.syncDoc('settings', 'founder', { url: this.founderPhoto });
+        }
+      }, err => console.warn('[Firestore] Founder photo listener error:', err));
+
+      // Story Images Live Listener
+      onSnapshot(doc(db, 'settings', 'story'), (docSnap) => {
+        if (docSnap.exists() && docSnap.data().images) {
+          this.storyImages = docSnap.data().images;
+          saveStorage(STORAGE_KEYS.STORY_IMAGES, this.storyImages);
+          this.notify();
+          this.hasInitialLoaded['story'] = true;
+        } else if (!this.hasInitialLoaded['story'] && this.storyImages) {
+          this.hasInitialLoaded['story'] = true;
+          this.syncDoc('settings', 'story', { images: this.storyImages });
+        }
+      }, err => console.warn('[Firestore] Story images listener error:', err));
+
+      // Webhook URL Live Listener
+      onSnapshot(doc(db, 'settings', 'webhook'), (docSnap) => {
+        if (docSnap.exists() && docSnap.data().url !== undefined) {
+          this.webhookUrl = docSnap.data().url;
+          saveStorage(STORAGE_KEYS.WEBHOOK, this.webhookUrl);
+          this.notify();
+          this.hasInitialLoaded['webhook'] = true;
+        } else if (!this.hasInitialLoaded['webhook'] && this.webhookUrl) {
+          this.hasInitialLoaded['webhook'] = true;
+          this.syncDoc('settings', 'webhook', { url: this.webhookUrl });
+        }
+      }, err => console.warn('[Firestore] Webhook listener error:', err));
 
     } catch (e) {
       console.warn('[Firestore] Sync init failed:', e);
@@ -254,7 +359,7 @@ class KanvanaStore {
     return !inSubmissions;
   }
 
-  addCustomTree(treeData: Omit<TreeProfile, 'qrCodeUrl'>): { success: boolean; message?: string; tree?: TreeProfile } {
+  async addCustomTree(treeData: Omit<TreeProfile, 'qrCodeUrl'>): Promise<{ success: boolean; message?: string; tree?: TreeProfile }> {
     const cleanId = treeData.treeId.toUpperCase().trim();
     if (!cleanId) {
       return { success: false, message: 'Tree ID cannot be empty.' };
@@ -263,8 +368,10 @@ class KanvanaStore {
       return { success: false, message: `Tree ID "${cleanId}" already exists in the central registry! Duplicate Tree IDs are strictly blocked.` };
     }
 
+    const processedPhotos = await this.compressPhotoUrls(treeData.photos || []);
     const newTree: TreeProfile = {
       ...treeData,
+      photos: processedPhotos,
       treeId: cleanId,
       qrCodeUrl: `https://kanvana.vercel.app/tree/${cleanId}`
     };
@@ -294,9 +401,14 @@ class KanvanaStore {
     return headers + rows;
   }
   getFounderPhoto(): string { return this.founderPhoto; }
-  setFounderPhoto(url: string) {
-    this.founderPhoto = url;
-    saveStorage(STORAGE_KEYS.FOUNDER_PHOTO, url);
+  async setFounderPhoto(url: string) {
+    let finalUrl = url;
+    if (url && url.startsWith('data:image')) {
+      finalUrl = await compressImage(url, 600, 600, 0.70);
+    }
+    this.founderPhoto = finalUrl;
+    saveStorage(STORAGE_KEYS.FOUNDER_PHOTO, finalUrl);
+    this.syncDoc('settings', 'founder', { url: finalUrl });
     this.notify();
   }
 
@@ -304,6 +416,7 @@ class KanvanaStore {
   setWebhookUrl(url: string) {
     this.webhookUrl = url;
     saveStorage(STORAGE_KEYS.WEBHOOK, url);
+    this.syncDoc('settings', 'webhook', { url });
     this.notify();
   }
 
@@ -441,9 +554,11 @@ class KanvanaStore {
     this.notify();
   }
 
-  addSubmission(subData: Omit<Submission, 'id' | 'createdAt' | 'status' | 'featured'>): Submission {
+  async addSubmission(subData: Omit<Submission, 'id' | 'createdAt' | 'status' | 'featured'>): Promise<Submission> {
+    const processedPhotos = await this.compressPhotoUrls(subData.photoUrls || []);
     const newSub: Submission = {
       ...subData,
+      photoUrls: processedPhotos,
       id: `sub-${Date.now()}`,
       createdAt: new Date().toISOString(),
       status: 'pending',
@@ -656,9 +771,11 @@ class KanvanaStore {
     this.notify();
   }
 
-  addMapMarker(markerData: Omit<MapMarker, 'id' | 'createdAt'>) {
+  async addMapMarker(markerData: Omit<MapMarker, 'id' | 'createdAt'>): Promise<MapMarker> {
+    const processedPhotos = await this.compressPhotoUrls(markerData.photos || []);
     const newMarker: MapMarker = {
       ...markerData,
+      photos: processedPhotos,
       id: `marker-${Date.now()}`,
       createdAt: new Date().toISOString()
     };
@@ -707,13 +824,19 @@ class KanvanaStore {
     this.notify();
   }
 
-  addTreeGrowthEntry(treeId: string, entry: { date: string; photo: string; note: string }) {
+  async addTreeGrowthEntry(treeId: string, entry: { date: string; photo: string; note: string }) {
+    let compressedPhoto = entry.photo;
+    if (compressedPhoto && compressedPhoto.startsWith('data:image')) {
+      compressedPhoto = await compressImage(compressedPhoto, 600, 600, 0.70);
+    }
+    const updatedEntry = { ...entry, photo: compressedPhoto };
+
     let updatedTree: TreeProfile | null = null;
     this.trees = this.trees.map(t => {
       if (t.treeId === treeId) {
         updatedTree = {
           ...t,
-          growthLog: [entry, ...t.growthLog]
+          growthLog: [updatedEntry, ...t.growthLog]
         };
         return updatedTree;
       }
@@ -728,20 +851,34 @@ class KanvanaStore {
     return this.storyImages && this.storyImages.length === 5 ? this.storyImages : defaultStoryImages;
   }
 
-  updateStoryImage(index: number, newUrl: string) {
+  async updateStoryImage(index: number, newUrl: string) {
     if (index >= 0 && index < 5) {
+      let finalUrl = newUrl;
+      if (newUrl && newUrl.startsWith('data:image')) {
+        finalUrl = await compressImage(newUrl, 600, 600, 0.70);
+      }
       const updated = [...this.getStoryImages()];
-      updated[index] = newUrl;
+      updated[index] = finalUrl;
       this.storyImages = updated;
       saveStorage(STORAGE_KEYS.STORY_IMAGES, this.storyImages);
+      this.syncDoc('settings', 'story', { images: this.storyImages });
       this.notify();
     }
   }
 
-  updateAllStoryImages(images: string[]) {
+  async updateAllStoryImages(images: string[]) {
     if (Array.isArray(images) && images.length === 5) {
-      this.storyImages = images;
+      const processed: string[] = [];
+      for (const img of images) {
+        if (img && img.startsWith('data:image')) {
+          processed.push(await compressImage(img, 600, 600, 0.70));
+        } else {
+          processed.push(img);
+        }
+      }
+      this.storyImages = processed;
       saveStorage(STORAGE_KEYS.STORY_IMAGES, this.storyImages);
+      this.syncDoc('settings', 'story', { images: this.storyImages });
       this.notify();
     }
   }
